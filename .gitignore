@@ -1,0 +1,18 @@
+# Virtuelle Umgebung
+.venv/
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Modelle (können groß werden, Registry trackt Metadaten stattdessen)
+models/*.joblib
+models/*.pkl
+
+# OS/Editor
+.DS_Store
+.vscode/settings.json
+
+# Environment
+.env
