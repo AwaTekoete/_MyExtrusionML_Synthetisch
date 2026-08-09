@@ -2,13 +2,13 @@
 
 Machbarkeitsstudie + Proof-of-Concept (auf synthetischen Daten) für ein
 ML-gestütztes Assistenzsystem zur Extrusionsparameter-Empfehlung bei
-UNICOR GmbH (Korrugatoren/Wellrohr-Extrusion).
+Extruder GmbH (Korrugatoren/Wellrohr-Extrusion, fiktives Unternehmen).
 
 ## Hintergrund
 Wissens-Digitalisierung vor Renteneintritt eines erfahrenen Einrichters.
-Ziel: UNICOR zeigen, wie eine Lösung aussehen könnte – auf Basis
-realistisch generierter synthetischer Daten, da aktuell kein Zugriff
-auf Realdaten besteht.
+Ziel: einem Extrusionsmaschinenhersteller zeigen, wie eine Lösung
+aussehen könnte – auf Basis realistisch generierter synthetischer
+Daten, da aktuell kein Zugriff auf Realdaten besteht.
 
 ## Modellarchitektur
 - **Modell A** (Qualitätsvorhersage): Prozessparameter → Qualitätsmerkmale/IO-NIO
@@ -25,3 +25,6 @@ Analyseergebnisse als CSV, `app/` für den Streamlit-Demonstrator.
 ## Umgebung
 - Python 3.11, Conda-Environment `extrusion-ml`
 - `pip install -r requirements.txt`
+
+## Hinweis
+Alle Firmen-/Produktbezüge in diesem Projekt sind fiktiv.
