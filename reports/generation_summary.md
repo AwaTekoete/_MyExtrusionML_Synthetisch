@@ -89,6 +89,36 @@ Laufend gepflegtes Dokument; wird bei jedem Generierungs-Notebook ergaenzt.
 - SOTA-Einordnung fuer dieses Notebook nicht anwendbar (siehe Projektanweisung:
   SOTA = Methodik + interner Noise-Floor, kein externer Datensatz-Benchmark)
 
+### Root-Cause-Korrektur (nachtraeglich, vor Beginn der EDA)
+Waehrend der Vorbereitung von Notebook 03 wurde die Plausibilitaet des
+Merkmals "Vakuumniveau" hinterfragt (Werte um -400 mbar). Recherche ergab:
+Vakuum wird bei Wellrohr-Corrugatoren nur bei Nennweiten > 200mm eingesetzt;
+bei kleineren Nennweiten erfolgt die Ausformung ueber Formluft/Ueberdruck
+(Quelle: Wikipedia "Corrugator (Kunststoffverarbeitung)", DeWiki "Corrugator").
+Der urspruengliche Datensatz deckte ausschliesslich DN 50-200mm ab - also
+den Formluft-Bereich - wurde aber durchgaengig mit Vakuum-Logik modelliert.
+
+Korrekturmassnahmen (Notebook 02 zurueckverfolgt und angepasst):
+- DN-Verteilung um Nennweiten > 200mm erweitert (DN250: 5%, DN315: 3%),
+  damit beide Mechanismen im Datensatz tatsaechlich vorkommen
+- Merkmal umbenannt/aufgeteilt: `vakuumniveau` -> `kalibrierdruck_mbar`
+  (Vorzeichen kodiert Mechanismus) + neue kategoriale Spalte
+  `kalibriermechanismus` (Formluft/Vakuum), strukturell aus DN abgeleitet
+  (nicht zufaellig)
+- Alle abhaengigen Formeln (Ausformungsgrad, Aussendurchmesser-/
+  Ovalitaets-Streuung) von `vac_norm` auf mechanismus-unabhaengiges
+  `druck_norm` umgestellt
+- Parametertabellen (00/01) konsistent korrigiert, inkl. Quellenangabe
+- Ergebnis nach Korrektur: 92.3% Formluft-Mechanismus, 7.7% Vakuum-
+  Mechanismus - Verteilung entspricht der ueberwiegend kleineren/mittleren
+  Nennweiten im urspruenglichen Produktspektrum
+
+Konkrete mbar-Zahlenwerte bleiben fuer beide Mechanismen unbelegte Annahmen
+(keine oeffentliche Quelle mit Zahlenwerten gefunden) - nur der MECHANISMUS
+(Vorzeichen/Schwelle bei DN200) ist jetzt quellenbasiert, nicht die Betraege.
+Dies illustriert das Prinzip "an der Quelle korrigieren, nicht nur an der
+Oberflaeche kommentieren".
+
 ### Naechster Schritt
 Notebook 03: EDA fuer Modell A, "blind" durchgefuehrt (kein Vorwissen ueber
 den Generator vorausgesetzt). Latente Referenzgroessen dienen im Anschluss
