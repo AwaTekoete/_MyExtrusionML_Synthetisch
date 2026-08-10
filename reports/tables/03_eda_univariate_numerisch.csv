@@ -1,0 +1,15 @@
+Spalte,Mean,Std,Skewness,Kurtosis,Shapiro_p,Normalverteilt (p>0.05),IQR_Outlier_Anzahl,IQR_Outlier_Prozent
+schneckendrehzahl,38.067,11.925,1.014,0.936,0.0,False,50,7.14
+massedurchsatz,56.903,25.019,1.617,2.548,0.0,False,57,8.14
+massetemperatur,215.13,4.104,0.196,0.046,0.1037,True,8,1.14
+massedruck,147.491,47.045,1.089,1.129,0.0,False,28,4.0
+duesenspalt,1.601,0.429,1.376,2.041,0.0,False,49,7.0
+abzugsgeschwindigkeit,4.185,2.587,1.634,2.626,0.0,False,59,8.43
+kalibrierdruck_mbar,96.494,249.319,-3.019,7.664,0.0,False,74,10.57
+kuehlwassertemperatur,16.131,3.998,-0.052,-0.583,0.0,False,0,0.0
+mfr_charge,0.683,0.152,0.005,-0.104,0.4462,True,3,0.45
+wandstaerke_ist,1.819,0.489,1.347,1.871,0.0,False,49,7.0
+aussendurchmesser_ist,110.861,57.586,1.737,2.955,0.0,False,57,8.53
+ovalitaet,0.288,0.224,1.149,1.503,0.0,False,13,1.86
+wellhoehe_ist,8.223,4.652,1.822,3.219,0.0,False,65,9.29
+wellteilung_ist,16.75,8.863,1.741,2.934,0.0,False,57,8.49

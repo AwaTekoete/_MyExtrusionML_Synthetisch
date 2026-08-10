@@ -1,0 +1,4 @@
+Strategie,Accuracy,F1 (NIO=1),Precision (NIO=1),Recall (NIO=1)
+most_frequent,0.736,0.0,0.0,0.0
+stratified,0.571,0.189,0.189,0.189
+uniform,0.471,0.351,0.26,0.541
