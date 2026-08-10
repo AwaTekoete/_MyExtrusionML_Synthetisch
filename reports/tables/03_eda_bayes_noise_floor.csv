@@ -1,0 +1,6 @@
+Kennzahl,Wert
+Bayes_Accuracy,0.7804542857142857
+Bayes_F1_thr05,0.226640499194847
+Bayes_F1_optimal,0.4465029645810579
+Bayes_F1_optimal_threshold,0.22000000000000003
+F1_Zufall_Referenz,0.3433395872420263
