@@ -119,10 +119,44 @@ Konkrete mbar-Zahlenwerte bleiben fuer beide Mechanismen unbelegte Annahmen
 Dies illustriert das Prinzip "an der Quelle korrigieren, nicht nur an der
 Oberflaeche kommentieren".
 
+### Zweite Root-Cause-Korrektur (waehrend EDA, Notebook 03 Zelle 08b/8c)
+Waehrend der bivariaten EDA-Analyse (Korrelationsmatrix, Vertiefung
+abzugsgeschwindigkeit vs. kalibrierdruck_mbar) fiel eine unerwartete negative
+Korrelation innerhalb der Vakuum-Teilgruppe auf. Ursache: abzugsgeschwindigkeit
+war bei DN315 zu 100% an der oberen Clip-Grenze (15 m/min) gesaettigt
+(Range-Restriktion/Deckeneffekt), da die zugrunde liegende Formel
+(quadratisch in DN ueber querschnitt_proxy) nur fuer den urspruenglichen
+Bereich DN<=200 kalibriert war und bei der DN-Erweiterung (erste Korrektur,
+siehe oben) nicht mitkalibriert wurde.
+
+Daraufhin systematischer Check ALLER DN-abhaengigen Formeln in Notebook 02
+(nicht nur des gemeldeten Einzelfalls) durchgefuehrt. Ergebnis: zwei weitere,
+bis dahin unentdeckte Faelle mit Vollsaettigung bei DN>200 gefunden:
+- wandstaerke_ideal: 72.2% Clipping bei DN>200 (kritisch, da diese latente
+  Groesse praktisch alle nachgelagerten Merkmale beeinflusst)
+- massedurchsatz: 100% Clipping bei DN>200
+
+Korrekturmassnahme: alle drei Formeln (wandstaerke_ideal, massedurchsatz,
+abzugsgeschwindigkeit) von quadratischer auf lineare DN-Abhaengigkeit
+umgestellt und fuer den vollen Bereich (DN 50-315) neu kalibriert.
+querschnitt_proxy dadurch obsolet, entfernt. Ergebnis nach Korrektur:
+0% Clipping bei allen drei Formeln, auch innerhalb der DN>200-Teilmenge.
+Notebook 02 (Zellen 02-08b) vollstaendig neu durchlaufen.
+
+**Methodische Lehre:** Eine nachtraegliche Erweiterung des Wertebereichs
+einer latenten Variable (hier: DN-Verteilung) erfordert eine systematische
+Neuvalidierung ALLER davon abhaengigen Formeln, nicht nur der Formel, bei
+der ein Problem zuerst auffiel. Ein einzelner behobener Fall ist kein
+Beleg dafuer, dass keine weiteren aehnlich gelagerten Faelle existieren.
+
 ### Naechster Schritt
 Notebook 03: EDA fuer Modell A, "blind" durchgefuehrt (kein Vorwissen ueber
 den Generator vorausgesetzt). Latente Referenzgroessen dienen im Anschluss
-als Ground-Truth-Validierung der gefundenen Clusterstruktur.
+als Ground-Truth-Validierung der gefundenen Clusterstruktur. WICHTIG: bereits
+durchgefuehrte EDA-Zellen (Struktur-Check, Kruskal-Wallis, Korrelationsmatrix)
+basierten auf dem VOR der zweiten Korrektur generierten Datensatz und muessen
+mit dem korrigierten Datensatz erneut ausgefuehrt werden, bevor die
+EDA-Ergebnisse als belastbar gelten.
 
 ---
 
