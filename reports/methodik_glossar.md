@@ -452,5 +452,36 @@ jeden Modelltyp umsetzbar, nicht an eine bestimmte Architektur gebunden.
 
 ---
 
+## Data Leakage in der explorativen Datenanalyse (EDA), nicht nur beim Training
+
+**Definition (Erweiterung des Data-Leakage-Konzepts):** Data Leakage wird
+meist nur im Kontext von Modelltraining diskutiert (z. B. Skalierung auf
+dem Gesamtdatensatz statt nur Training-Fold). Es kann jedoch bereits in
+der EDA entstehen: wenn eine Zielgroesse Y aus anderen, im selben
+Datensatz gemessenen Merkmalen abgeleitet wurde, und diese
+Herkunftsmerkmale unreflektiert als "Praediktoren" in Korrelations-,
+Signifikanz- oder Dimensionsreduktionsanalysen gegen Y einfliessen,
+entsteht ein naeherungsweise tautologischer Zusammenhang - die Analyse
+zeigt dann nicht, wie gut Y aus tatsaechlich verfuegbaren Eingangsgroessen
+vorhersagbar ist, sondern nur, dass Y aus sich selbst (bzw. seinen
+Bestandteilen) berechenbar ist.
+
+**Pruefmethode:** Vor jeder Praediktor-Analyse explizit klaeren, welche
+Merkmale zum Zeitpunkt der Vorhersage tatsaechlich verfuegbar waeren
+(X, meist zeitlich/kausal VOR dem Zielereignis) und welche nur zur
+Konstruktion der Zielgroesse selbst dienten (Bestandteile von Y).
+
+**Projektbezug:** Die urspruengliche EDA (Notebook 03) vermischte X_A-
+Prozessparameter mit Y_A-Qualitaetsmesswerten, aus denen io_nio direkt
+per Schwellenwert berechnet wird. Nach Korrektur (nur X_A_MERKMALE, 9
+echte Prozessparameter): Kruskal-Wallis-Signifikanz sank von 10/14 auf
+5/9 Merkmale, Silhouette-Score von 0.037 auf 0.017 - das ehrliche,
+Leakage-freie Bild der Aufgabenschwierigkeit. Der unabhaengig berechnete
+Bayes-Noise-Floor (F1=0.447) war von Anfang an korrekt nur auf X_A
+basiert und blieb dadurch die zuverlaessigste Referenzgroesse waehrend
+der gesamten EDA-Phase.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

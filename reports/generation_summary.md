@@ -220,4 +220,43 @@ Zielgroessen-Varianten und DN-relative Feature-Konstruktion erweitert.
 
 ---
 
+## Nachtrag 2: Korrektur Data-Leakage-Risiko in der EDA (X_A/Y_A-Vermischung)
+
+Nach kritischer Rueckfrage (User: "muessen wir nicht verstehen, was wir
+tatsaechlich ins Modell schicken?") wurde festgestellt, dass die
+urspruengliche EDA-Analysevariable `numerische_cols` X_A-Prozessparameter
+mit Y_A-Qualitaetsmesswerten vermischte. Da io_nio direkt per Schwellenwert
+aus den Y_A-Merkmalen (wandstaerke_ist, ovalitaet, aussendurchmesser_ist,
+wellhoehe_ist/wellteilung_ist) berechnet wird, fuehrte deren Einbeziehung
+als "Praediktoren" zu einem naeherungsweise tautologischen, kuenstlich
+optimistischen Bild der Trennbarkeit.
+
+**Korrigierte Ergebnisse (nur X_A_MERKMALE, 9 echte Prozessparameter,
+die tatsaechlich VOR der Fertigung bekannt sind):**
+
+| Kennzahl | Mit Y_A vermischt (fehlerhaft) | Nur X_A (korrekt) |
+|---|---|---|
+| Kruskal-Wallis signifikant | 10 von 14 | 5 von 9 |
+| Silhouette-Score IO/NIO | 0.037 | 0.017 |
+| PC1-Varianzanteil | 58.4% | 48.0% |
+| PC1 <-> latente DN (Ground Truth) | r=0.993 | r=0.984 |
+
+**Einordnung:** Die grundlegende Datenstruktur (PC1=Nennweitenfaktor)
+bleibt stabil und wird weiterhin korrekt erkannt, unabhaengig von der
+Korrektur. Die tatsaechliche IO/NIO-Trennbarkeit aus reinen
+Prozesseinstellungen ist schwaecher als das urspruengliche, leicht
+verzerrte Bild suggerierte - konsistent mit dem unabhaengig berechneten
+Bayes-Noise-Floor (F1=0.447, Zelle 14), der von Anfang an korrekt nur
+auf X_A-Groessen basierte und dadurch als verlaesslichste bisherige
+Referenzgroesse gilt.
+
+**Aktualisierte Referenzvariable fuer Notebook 04:** X_A_MERKMALE (9
+Spalten: schneckendrehzahl, massedurchsatz, massetemperatur, massedruck,
+duesenspalt, abzugsgeschwindigkeit, kalibrierdruck_mbar,
+kuehlwassertemperatur, mfr_charge). Y_A-Qualitaetsmesswerte duerfen NICHT
+als Modell-Input fuer die Kernaufgabe (Qualitaet vor Fertigung vorhersagen)
+verwendet werden - nur zur Zielgroessen-Konstruktion.
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
