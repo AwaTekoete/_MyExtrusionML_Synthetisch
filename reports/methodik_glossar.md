@@ -365,5 +365,92 @@ in diesem Projekt.
 
 ---
 
+## Bayes-Optimale Klassifikationsguete / Theoretischer Noise-Floor (Monte-Carlo)
+
+**Definition:** Bei bekanntem Generierungsprozess (nicht nur einem
+trainierten Modell) laesst sich per Monte-Carlo-Simulation die THEORETISCH
+bestmoegliche Klassifikationsguete berechnen: fuer jede feste Eingabe X
+wird der stochastische Teil der Zielgroessen-Generierung vielfach
+wiederholt, daraus ergibt sich P(Y=1|X). Die Bayes-optimale Regel sagt
+die wahrscheinlichere Klasse voraus; kein Modell kann im Mittel besser
+werden als diese Grenze, unabhaengig von Modellguete oder Datenmenge.
+
+**Berechnung:** Accuracy_Bayes = Mittelwert von max(P(Y=1|X), 1-P(Y=1|X))
+ueber alle X. F1_Bayes wird analog ueber die erwartete Konfusionsmatrix
+unter der Bayes-Entscheidungsregel berechnet, optional mit
+schwellenwert-optimiertem Grenzwert statt Standard 0.5.
+
+**Wichtiger Vergleichsanker:** erwartetes F1 eines reinen 50/50-
+Zufallsklassifikators bei Zielgroessen-Basisrate π:
+F1_Zufall = 2·π·0.5 / (π+0.5). Zeigt, ob eine gemessene/theoretische F1
+tatsaechlich lernbares Signal enthaelt oder nahe am Zufallsniveau liegt.
+
+**Projektbezug (Modell A, io_nio):** Bayes-optimales F1 = 0.447 (bei
+optimalem Schwellenwert 0.22), gegenueber F1_Zufall = 0.343 bei
+Nio-Basisrate 26%. Zeigt: echtes, aber moderates lernbares Signal.
+92.7% aller Datenpunkte liegen im "unsicheren Bereich" (P(NIO) zwischen
+10% und 90%) - die weit ueberwiegende Mehrheit der Faelle ist selbst bei
+perfektem Modellwissen nicht sicher entscheidbar. Dient als objektiver
+Referenzpunkt: ein spaeteres trainiertes Modell mit F1 nahe 0.40-0.45 gilt
+als sehr gut (nahe am theoretischen Optimum); deutlich hoehere Werte
+deuten auf Data Leakage oder Fehler hin, nicht auf ein besonders gutes
+Modell.
+
+---
+
+## Dichotomisierung / Informationsverlust durch Binarisierung
+
+**Definition:** Wird eine kontinuierliche oder mehrdimensionale Zielgroesse
+kuenstlich in eine binaere Kategorie (z. B. IO/NIO) zusammengefasst, geht
+Information verloren - insbesondere (a) wie WEIT ein Wert von der
+Entscheidungsgrenze entfernt ist (Sicherheitsabstand) und (b) WELCHE
+Kombination von Einzelursachen zum Ergebnis gefuehrt hat, wenn mehrere
+unabhaengige Kriterien per ODER zur Zielgroesse zusammengefasst werden.
+In der Statistik/ML-Literatur als "loss of information through
+dichotomization" dokumentiert (u. a. MacCallum et al.).
+
+**Gegenmassnahmen (State-of-Art-Praxis):**
+- Regression auf die zugrunde liegende kontinuierliche Groesse statt
+  binaerer Klassifikation, ggf. mit nachtraeglicher Schwellenwertanwendung
+- Multi-Label-Klassifikation statt Aggregation zu einem einzelnen Bit,
+  wenn mehrere unabhaengige Zielkriterien vorliegen
+
+**Projektbezug:** Modell A (io_nio) entstand durch ODER-Verknuepfung von
+8 Einzelkriterien. Empirisch bestaetigt: 15.3% der NIO-Faelle haben 2+
+gleichzeitig erfuellte Kriterien - diese Kombinationsinformation geht in
+der binaeren Zielgroesse vollstaendig verloren. Fuehrte zur Einfuehrung
+von zwei zusaetzlichen Zielgroessen-Varianten (kontinuierlicher
+Sicherheitsabstand; Multi-Label-Vektor) zum systematischen Vergleich in
+Notebook 05/06.
+
+---
+
+## Multi-Label-Klassifikation
+
+**Definition:** Klassifikationsproblem, bei dem jede Beobachtung mehrere,
+gleichzeitig zutreffende Kategorien haben kann (Y ist ein binaerer Vektor,
+nicht ein einzelnes Label) - im Unterschied zu Multi-Class (genau eine von
+mehreren Kategorien) oder binaerer Klassifikation (genau ein Bit).
+
+**Passende Verfahren:** Bestehende Klassifikatoren lassen sich ueber
+Wrapper erweitern (z. B. scikit-learn MultiOutputClassifier: trainiert
+einen unabhaengigen Klassifikator je Label; ClassifierChain: beruecksichtigt
+zusaetzlich Abhaengigkeiten zwischen Labels), oder ueber ein neuronales
+Netz mit mehreren Sigmoid-Ausgangsneuronen (ein Wert je Label).
+
+**Wichtige Abgrenzung:** Convolutional Neural Networks (CNN) sind fuer
+diese Aufgabe NICHT das passende Werkzeug - CNNs nutzen raeumliche/
+sequenzielle Nachbarschaftsstruktur (Bilder, Zeitreihen), die bei
+tabellarischen Prozessdaten nicht vorhanden ist. Multi-Label-Faehigkeit
+und Netzwerkarchitektur (CNN vs. MLP vs. Baumverfahren) sind zwei
+unabhaengige Entscheidungsdimensionen - Multi-Label ist ueber praktisch
+jeden Modelltyp umsetzbar, nicht an eine bestimmte Architektur gebunden.
+
+**Projektbezug:** Zielgroessen-Variante 3 fuer Modell A - 8 Einzelkriterien
+(Wandstaerke-, Ovalitaets-, Aussendurchmesser-, Wellhoehe-Toleranz sowie
+4 Fehlerflags) als gemeinsamer Vektor statt aggregiertem Einzelbit.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

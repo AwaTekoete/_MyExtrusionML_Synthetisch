@@ -160,4 +160,64 @@ EDA-Ergebnisse als belastbar gelten.
 
 ---
 
+## Nachtrag (nach Abschluss EDA Modell A): Kritische Reflexion Zielsetzung
+## + theoretischer Noise-Floor
+
+Nach Abschluss der urspruenglichen EDA (Notebook 03) wurde die Zielgroessen-
+Definition von Modell A (binaeres io_nio) kritisch hinterfragt: welches
+Problem soll Modell A tatsaechlich loesen, und ist eine binaere Aggregation
+aus 8 unabhaengigen Kriterien die beste Loesung dafuer?
+
+**Zentrales quantitatives Ergebnis - theoretischer Noise-Floor (Monte-Carlo-
+Simulation, n=2000 Wiederholungen je Zeile, Prozessparameter X_A fixiert):**
+
+| Kennzahl | Wert |
+|---|---|
+| Bayes-optimale Accuracy | 78.0% |
+| Bayes-optimales F1 (Standardschwelle 0.5) | 0.227 |
+| Bayes-optimales F1 (bester Schwellenwert 0.22) | 0.447 |
+| Referenz: erwartetes F1 bei reinem Zufallsraten | 0.343 |
+| Anteil Zeilen im "unsicheren Bereich" (P(NIO) 10-90%) | 92.7% |
+
+**Bedeutung:** F1=0.447 ist die harte Obergrenze fuer JEDES Modell auf
+dieser Datengrundlage - auch bei perfektem Training. Das liegt spuerbar,
+aber nicht dramatisch ueber reinem Zufallsraten (0.343). Ein spaeteres
+Modellergebnis nahe F1=0.40-0.45 ist demnach sehr gut einzuordnen, nicht
+enttaeuschend; deutlich hoehere Werte waeren ein Alarmsignal (Data Leakage).
+
+**Empirischer Beleg fuer Informationsverlust durch binaere Aggregation:**
+15.3% der NIO-Faelle im Datensatz haben 2 oder mehr gleichzeitig erfuellte
+NIO-Kriterien (z. B. Ovalitaet UND Bindenaehte) - diese Information geht
+durch die aktuelle binaere io_nio-Zielgroesse vollstaendig verloren.
+
+**Konsequenz - drei parallele Zielgroessen-Varianten fuer Modell A ab
+Notebook 05/06:**
+1. Variante 1 (bisherig): binaere Klassifikation io_nio
+2. Variante 2 (neu): Regression auf kontinuierlichen, normierten
+   Sicherheitsabstand zur kritischsten Toleranzgrenze (Korrelation -0.604
+   zum binaeren Label - bestaetigt zusaetzlichen Informationsgehalt)
+3. Variante 3 (neu): Multi-Label-Klassifikation der 8 Einzelkriterien als
+   Vektor (nicht CNN - tabellarische Daten ohne raeumliche Struktur;
+   MultiOutputClassifier/ClassifierChain oder MLP mit mehreren
+   Sigmoid-Ausgaengen als passende Verfahren)
+
+Gespeichert: `data/processed/model_a_zielgroessen_varianten.csv`,
+`reports/tables/03_eda_bayes_noise_floor.csv`,
+`reports/tables/03_eda_nio_kriterien_kombinationen.csv`.
+
+**Blocker-Uebersicht (vollstaendig, inkl. Einordnung "aenderbar vs. gewollt"):**
+
+| Blocker | Art | Status |
+|---|---|---|
+| Zusammengesetzte Zielgroesse (ODER-Verknuepfung) | Design-Entscheidung | Wird durch Zielgroessen-Varianten 2/3 adressiert |
+| PC1 (Nennweite) traegt kein NIO-Signal | Struktureigenschaft | Erklaert schwache Silhouette-Trennbarkeit (0.037), kein Fehler |
+| Fehlende DN-relative Abweichungsfeatures | Feature-Engineering-Luecke | Wird in Notebook 04 behoben |
+| Wenige Faelle fuer seltene Einzelfehler (z. B. Bindenaehte: 2-7 Faelle) | Informationsgrenze | Nicht durch Analyse loesbar, nur durch mehr Daten |
+| Rauschen nahe an Toleranzschwellen (~2 Sigma) | Kalibrierungsentscheidung | Bewusst dokumentiert, keine rueckwirkende Aenderung |
+
+Naechster Schritt bleibt Notebook 04 (Preprocessing Modell A), jetzt um die
+Zielgroessen-Varianten und DN-relative Feature-Konstruktion erweitert.
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
