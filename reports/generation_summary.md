@@ -446,4 +446,73 @@ Preprocessing-Validierungs-EDA-Nachtrag, Abschluss-Markdown Notebook 04.
 
 ---
 
+## Notebook 05 – Modelltraining Modell A (AP 3.4)
+
+### Vorbereitung: DNResidualizer (leakage-sicherer Custom-Transformer)
+
+Kritische Nachbesserung vor Trainingsstart: die in Notebook 04 gespeicherten
+*_dn_bereinigt-Spalten wurden auf dem GESAMTEN Datensatz berechnet (PCA +
+9 Regressionen) - fuer explorative EDA zulaessig, aber Data Leakage bei
+Verwendung im Modelltraining. Loesung: DNResidualizer als eigener
+sklearn-Transformer (BaseEstimator, TransformerMixin) in src/preprocessing.py,
+lernt PCA-Achse und Regressionen ausschliesslich in fit() - bei Nutzung
+innerhalb einer sklearn.Pipeline automatisch nur auf dem jeweiligen
+Trainings-Fold, strukturell leakage-sicher ohne manuellen Eingriff.
+
+FEATURE_SETS auf 4 Varianten erweitert (original, original_no_kategorial,
+residual, combined) - original_no_kategorial ergaenzt, um den
+eigenstaendigen Beitrag von wandtyp/kalibriermechanismus zu pruefen
+(Cramer's V aus Notebook 03 deutete auf geringen Effekt hin).
+
+### Ablationsstudie: 4 Feature-Sets x Modelle x 3 Zielgroessen-Varianten
+
+Modellkatalog (nach kritischer Diskussion erweitert, inkl. bewusst
+"ungeeigneter" Kandidaten als Negativ-Beleg):
+- Binaer (9 Modelle): LogisticRegression, kNN, SVC, RandomForest,
+  HistGradientBoosting, XGBoost, LightGBM, GaussianNB, MLP
+- Kontinuierlich (8 Modelle): Ridge, kNN, SVR, RandomForest,
+  HistGradientBoosting, XGBoost, LightGBM, MLP
+- Multi-Label (9 Modelle, via MultiOutputClassifier): analog binaer
+
+Gesamt: 104 Kombinationen, gemeinsamer 5-Fold-StratifiedKFold-Split
+(stratifiziert auf io_nio) fuer alle Kombinationen wiederverwendet -
+sichert Vergleichbarkeit ueber alle drei Zielgroessen-Varianten hinweg.
+Bei "continuous" werden die durch y_od_komponente_zuverlaessig maskierten
+Zeilen pro Fold ausgeschlossen.
+
+**Ergebnis erster Durchlauf:** 100/104 erfolgreich. 4 Fehlschlaege isoliert
+auf XGBoost + binaere Zielgroesse: XGBoost akzeptiert bei binaerer
+Klassifikation keine String-Labels ("IO"/"NIO"), erwartet numerisch
+kodierte Klassen (0/1) - andere sklearn-kompatible Modelle kodieren dies
+intern automatisch, XGBoost nicht. Behoben durch lokale Label-Kodierung
+nur fuer diesen Modell/Zielgroessen-Fall, Vorhersage wird vor der
+Metrik-Berechnung zurueckuebersetzt, damit alle Metrik-Funktionen
+weiterhin einheitlich mit "IO"/"NIO"-Strings arbeiten. Nach Korrektur:
+104/104 erfolgreich.
+
+**Robustheitsmassnahmen bei grossen Ablationsstudien:** Try/Except je
+Einzelkombination (Fehler stoppen nicht die Gesamtschleife, werden als
+Status "fehlgeschlagen" mit Fehlermeldung dokumentiert) + Zwischen-
+speicherung nach jeder Kombination (kein Datenverlust bei Abbruch).
+Rechenzeit je Fit protokolliert (fit_time_sekunden) fuer spaeteren
+Aufwand-Nutzen-Vergleich.
+
+**Gemeinsame Rueckfall-Metrik (f1_rueckuebersetzt):** Da binaere,
+kontinuierliche und Multi-Label-Zielgroessen native, nicht direkt
+vergleichbare Metriken nutzen (F1 vs. RMSE/R² vs. Macro-F1), wird
+zusaetzlich jede Vorhersage in ein binaeres IO/NIO zurueckuebersetzt
+(kontinuierlich: Schwellenwert 0 am Sicherheitsabstand; Multi-Label:
+irgendein Label=1) und dort F1 gegen denselben Bayes-Noise-Floor (0.447)
+gemessen - schafft eine faire, gemeinsame Vergleichsbasis ueber alle drei
+Zielgroessen-Varianten.
+
+Gespeichert: reports/tables/05_ablation_results.csv (104 Zeilen).
+
+Naechster Schritt: erneuter Durchlauf mit zusaetzlicher Train-Score-
+Messung (Train-CV-Gap als Overfitting-Diagnose), dann Ergebnisanalyse
+(Effekt Feature-Set, Modelltyp, Zielgroessen-Variante; Naive-Bayes-
+Vergleich als Negativ-Beleg; Einordnung gegen Bayes-Noise-Floor).
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]

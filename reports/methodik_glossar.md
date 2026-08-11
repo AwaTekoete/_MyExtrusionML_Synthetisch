@@ -679,5 +679,85 @@ fuer alle 32 Zeilen mit imputiertem aussendurchmesser_ist gesetzt.
 
 ---
 
+## Custom sklearn-Transformer (BaseEstimator, TransformerMixin)
+
+**Definition:** Eigene Transformationen, die aus Daten lernende Parameter
+ableiten (z.B. eine gelernte Achse, Regressionskoeffizienten), lassen sich
+als eigene Klasse mit fit()/transform()-Schnittstelle implementieren
+(Vererbung von sklearn.base.BaseEstimator und TransformerMixin). Dadurch
+verhaelt sich die Transformation wie jeder eingebaute sklearn-Baustein
+(StandardScaler, SimpleImputer, ...) und kann in eine sklearn.Pipeline
+eingereiht werden - Cross-Validation-Infrastruktur (cross_validate,
+GridSearchCV, manuelle Fold-Schleifen mit .fit_transform()/.transform())
+sorgt dann automatisch dafuer, dass fit() nur auf Trainingsdaten laeuft,
+transform() auf beliebige neue Daten angewendet wird. Strukturell
+leakage-sicher, ohne manuellen Eingriff pro Fold.
+
+**Projektbezug:** DNResidualizer (src/preprocessing.py) kapselt PCA +
+9 Merkmal-Regressionen als custom Transformer, ersetzt die vorher
+explorativ auf dem Gesamtdatensatz berechneten *_dn_bereinigt-Spalten
+fuer den Trainingskontext.
+
+---
+
+## Gemeinsame Rueckfallmetrik bei unterschiedlichen Zielgroessentypen
+
+**Problem:** Klassifikation (F1), Regression (RMSE/R²) und Multi-Label
+(Macro-F1) nutzen jeweils eigene, nicht direkt vergleichbare Metriken -
+"F1=0.40" ist nicht direkt mit "RMSE=0.15" vergleichbar.
+
+**Loesung:** Eine gemeinsame Rueckfallmetrik definieren, auf die alle
+Varianten zurueckgerechnet werden koennen. Bei kontinuierlichen/Multi-
+Label-Vorhersagen: Rueckuebersetzung in dieselbe binaere Zielgroesse wie
+die Referenzvariante (hier: Schwellenwert bzw. "irgendein Label=1" ->
+IO/NIO), dort dieselbe Metrik (F1) berechnen wie fuer die binaere
+Variante direkt. Ermoeglicht fairen Vergleich UND Einordnung gegen
+denselben Referenzwert (hier: Bayes-Noise-Floor).
+
+**Projektbezug:** f1_rueckuebersetzt als zusaetzliche Metrik fuer
+"continuous" (Schwelle 0 am Sicherheitsabstand) und "multilabel"
+(Summe der 9 Label-Vorhersagen > 0), neben den jeweils nativen Metriken.
+
+---
+
+## Praktische Modell-Eigenheiten: Label-Encoding-Anforderungen (XGBoost)
+
+**Konzept:** Nicht alle ML-Bibliotheken kodieren kategoriale Zielgroessen-
+Labels automatisch intern. Die meisten sklearn-Klassifikatoren akzeptieren
+String-Labels direkt (z.B. "IO"/"NIO") und verwalten die interne
+0/1-Kodierung selbst. XGBoost (bei binaerer Klassifikation) erwartet
+dagegen explizit numerisch kodierte Klassen (0/1) und wirft sonst einen
+ValueError. Kein Bug, sondern eine bibliotheksspezifische Anforderung,
+die vor der Verwendung in einer generischen Modell-Schleife geprueft
+werden muss.
+
+**Loesungsmuster:** lokale Kodierung nur fuer die betroffene Modell-
+/Zielgroessen-Kombination (nicht global), Vorhersage vor der eigentlichen
+Metrik-Berechnung zurueckuebersetzen - haelt den Rest der Pipeline/
+Metrik-Funktionen unveraendert und wiederverwendbar fuer alle anderen
+Modelle.
+
+**Projektbezug:** 4 von 104 Ablationskombinationen (XGBoost + binaere
+Zielgroesse, alle 4 Feature-Sets) schlugen initial fehl, durch lokale
+Label-Kodierung behoben.
+
+---
+
+## Robustheitsmuster fuer grosse Ablationsstudien
+
+**Konzept:** Bei Schleifen mit vielen (hier: >100) unabhaengigen Modell-
+Trainingsdurchlaeufen sollte ein einzelner Fehlschlag (Exception,
+Konvergenzproblem, inkompatibler Datentyp) nicht die gesamte Studie
+abbrechen. Standardmuster: Try/Except um jede Einzelkombination, Status
+und Fehlermeldung dokumentieren statt zu crashen; Zwischenspeicherung
+der Ergebnistabelle nach jeder Kombination (nicht erst am Ende), sodass
+bei Abbruch keine bereits berechneten Ergebnisse verloren gehen.
+
+**Projektbezug:** Ablationsschleife (Notebook 05) mit Try/Except je
+Kombination + Speicherung nach jeder Zeile in
+reports/tables/05_ablation_results.csv umgesetzt.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
