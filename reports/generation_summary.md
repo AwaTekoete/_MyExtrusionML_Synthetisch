@@ -387,4 +387,63 @@ sklearn.Pipeline aufbauen, Preprocessing-Validierungs-EDA.
 
 ---
 
+## Nachtrag 4: Fehlendes Delamination-Kriterium im Multi-Label-Target
+## + Imputationsgrenzen bei Ausreisserwerten (Notebook 03/04, waehrend
+## Preprocessing-Validierung entdeckt)
+
+Bei der Preprocessing-Validierungs-EDA (Notebook 04, Zelle 10) wurde
+geprueft, ob Variante 3 (Multi-Label) und Variante 1 (binaer) konsistent
+zueinander sind. Ergebnis: nur 99.0% Uebereinstimmung, 7 abweichende
+Zeilen.
+
+**Ursache 1 (Hauptursache):** y_multilabel (Notebook 03, Zelle 16)
+enthielt nur 8 statt 9 Kriterien - delamination fehlte als eigenstaendige
+Spalte, obwohl es in der urspruenglichen io_nio-Logik (Notebook 02,
+Zelle 06) das neunte gleichberechtigte ODER-Kriterium ist. Korrektur:
+y_nio_delamination als 9. Spalte ergaenzt. Reduzierte die Abweichungen
+von 7 auf 2 Zeilen.
+
+**Ursache 2 (Restdiskrepanz, 2 Zeilen):** aussendurchmesser_ist enthaelt
+MCAR-Luecken (Notebook 02, Realismus-Luecken). Ein NaN-Vergleich (z.B.
+">1.2") wertet in Pandas automatisch als False - das Kriterium nio_od
+wuerde bei fehlenden Werten faelschlich nie ausloesen. Fuer die
+Zielgroessen-Rekonstruktion wurden die benoetigten Y_A-Spalten
+(wandstaerke_ist, aussendurchmesser_ist, ovalitaet, wellhoehe_ist,
+wellteilung_ist) daher per KNN imputiert (nur fuer diesen Zweck, data/raw
+bleibt unveraendert).
+
+**Wichtige methodische Erkenntnis - Imputation kann Ausreisser nicht
+rekonstruieren:** Diagnose der verbliebenen 2 Zeilen zeigte, dass die
+imputierten OD-Werte NICHT nahe der Toleranzgrenze lagen (Abstand 0.82mm
+bzw. 1.04mm zur 1.2mm-Schwelle) - urspruengliche Vermutung "Grenzfall"
+war falsch. Tatsaechliche Ursache: die echten (geloeschten) Original-
+werte waren offenbar statistische Ausreisser, die deutlich ueber der
+Toleranz lagen. KNN-Imputation schaetzt einen plausiblen/typischen Wert
+("was normalerweise zu erwarten waere"), kann aber einen individuellen
+Zufalls-Ausreisser grundsaetzlich nicht treffen - eine inhaerente Grenze
+jeder Imputationsmethode (verwandt mit "Regression zur Mitte"), kein
+Konstruktionsfehler.
+
+**Entscheidung zu Loeschen vs. Behalten:** beide betroffenen Zeilen NICHT
+geloescht - ihr binaeres io_nio-Label bleibt korrekt (auf den
+vollstaendigen Originalwerten vor Luecken-Einfuegung berechnet), nur die
+davon abgeleiteten Zielgroessen-Varianten 2/3 sind fuer die OD-Komponente
+unscharf. Stattdessen: gezielte Maskierung statt Datenverlust - neue
+Spalte y_od_komponente_zuverlaessig (0/1), grundsaetzlich fuer ALLE 32
+Zeilen mit imputiertem aussendurchmesser_ist gesetzt (nicht nur die 2
+sichtbar abweichenden - bei den uebrigen 30 ist unbekannt, ob die
+Imputation zufaellig korrekt lag; Maskierung erfolgt daher prinzipiell,
+nicht ergebnisbasiert). Analog zum bereits etablierten
+delamination_anwendbar-Muster.
+
+**Finales Ergebnis:** Konsistenz Multi-Label vs. binaer: 99.7% (2 von 700
+Zeilen dokumentierte Restungenauigkeit, ueber Flag fuer spaeteres
+maskiertes Training/Auswertung identifizierbar).
+
+Naechster Schritt: sklearn.Pipeline-Grundgerueст in src/preprocessing.py
+(Option C: Auswahlfunktion fuer Feature-Set x Zielgroessen-Variante),
+Preprocessing-Validierungs-EDA-Nachtrag, Abschluss-Markdown Notebook 04.
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]

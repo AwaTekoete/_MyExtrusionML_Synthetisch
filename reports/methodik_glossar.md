@@ -610,5 +610,74 @@ finale Pipeline uebernommen.
 
 ---
 
+## Dummy Variable Trap (Perfekte Multikollinearitaet bei One-Hot-Encoding)
+
+**Definition:** Wird eine kategoriale Variable mit k Kategorien vollstaendig
+in k One-Hot-Spalten kodiert (ohne eine Referenzkategorie wegzulassen),
+sind diese Spalten perfekt linear abhaengig (Summe je Zeile = 1 =
+Konstante) - fuehrt bei linearen Modellen zu einer singulaeren
+Designmatrix (Dummy Variable Trap): Koeffizienten werden instabil und
+nicht mehr eindeutig interpretierbar, der Effekt wird beliebig zwischen
+den redundanten Spalten aufgeteilt.
+
+**Pruefmethode:** Korrelation zwischen den One-Hot-Spalten einer
+Kategorie berechnen - bei binaerer Kategorie exakt r=-1.0 als Beleg fuer
+perfekte Redundanz.
+
+**Loesung:** drop_first=True (bzw. drop='first' bei OneHotEncoder) -
+eine Spalte je Kategorie weglassen, die verbleibenden Spalten kodieren
+die volle Information verlustfrei (0 in allen Spalten = implizite
+Referenzkategorie).
+
+**Konsequenzen je Modelltyp:**
+- Lineare/logistische Regression: PROBLEMATISCH, muss behoben werden
+- Baumbasierte Modelle (Random Forest, Gradient Boosting): technisch
+  unschaedlich, aber unnoetige Dimensionalitaet ohne Mehrwert
+- Distanzbasierte Verfahren (KNN-Imputation, PCA, Silhouette-Score):
+  redundante Spalten werden in der Distanzberechnung doppelt gewichtet,
+  verzerrt Ergebnisse leicht
+
+**Projektbezug:** wandtyp (doppelwandig/einwandig) und kalibriermechanismus
+(Formluft/Vakuum) wurden zunaechst ohne drop_first kodiert (r=-1.0
+rechnerisch bestaetigt), korrigiert auf je eine Spalte
+(wandtyp_einwandig, mechanismus_Vakuum). Betraf rueckwirkend auch die
+bereits durchgefuehrte KNN-Imputation und PCA in Notebook 04 (leicht,
+da nur 2 redundante Spalten von vielen).
+
+---
+
+## Grenzen der Imputation bei individuellen Ausreisserwerten
+
+**Konzept:** Imputationsmethoden (Median, KNN, etc.) schaetzen einen
+plausiblen, typischen Wert basierend auf der Verteilung bzw. aehnlichen
+Beobachtungen. Sie koennen grundsaetzlich KEINEN individuellen
+Zufalls-Ausreisser korrekt rekonstruieren, der zufaellig genau an dieser
+Stelle aufgetreten waere - die Schaetzung tendiert stattdessen zu einem
+"typischen" Wert (verwandtes Phaenomen: Regression zur Mitte). Das ist
+keine Fehlfunktion der Imputationsmethode, sondern eine inhaerente
+Grenze: fehlende Information kann durch Schaetzung angenaehert, nicht
+zuverlaessig exakt rekonstruiert werden.
+
+**Praktische Konsequenz:** wenn eine von einer imputierten Groesse
+abgeleitete binaere Entscheidung (z.B. Toleranzgrenze ueberschritten
+ja/nein) in einzelnen Faellen von einem unabhaengig berechneten,
+korrekten Referenzwert abweicht, ist das nicht zwingend ein Fehler in
+der Ableitungslogik, sondern kann eine erwartbare Konsequenz der
+Imputationsgrenze sein - insbesondere wenn der wahre, fehlende Wert ein
+Ausreisser war. Empfehlung: betroffene Faelle nicht loeschen (Verlust
+anderer, korrekter Information), sondern ueber eine Zuverlaessigkeits-
+Flag markieren und bei Bedarf gezielt maskieren (siehe auch: Maskierter
+Ansatz bei partiell anwendbaren Zielgroessen, oben im Glossar).
+
+**Projektbezug:** 2 von 700 Zeilen zeigten nach Imputation eine
+Diskrepanz zwischen rekonstruierter Multi-Label-Zielgroesse und
+urspruenglichem binaeren Label - Diagnose ergab, dass die imputierten
+Werte NICHT nahe der Toleranzgrenze lagen, sondern die echten
+(geloeschten) Werte vermutlich Ausreisser waren. Zeilen wurden behalten,
+Zuverlaessigkeits-Flag (y_od_komponente_zuverlaessig) grundsaetzlich
+fuer alle 32 Zeilen mit imputiertem aussendurchmesser_ist gesetzt.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
