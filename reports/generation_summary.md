@@ -259,4 +259,60 @@ verwendet werden - nur zur Zielgroessen-Konstruktion.
 
 ---
 
+## Nachtrag 3: wandtyp fehlte in X_A_MERKMALE (Notebook 04, waehrend Delamination-Behandlung entdeckt)
+
+Bei der Delamination-Sonderbehandlung (Notebook 04) wurde festgestellt,
+dass `wandtyp` nicht in X_A_MERKMALE (Nachtrag 2, Zelle 18) enthalten war,
+obwohl es ein vor der Fertigung bekanntes Auftragsmerkmal ist und direkt
+bestimmt, welche Fehlermechanismen ueberhaupt moeglich sind (Delamination
+nur bei doppelwandig). Die X_A-only-EDA (Nachtrag 2) war dadurch selbst
+unvollstaendig.
+
+**Korrekturmassnahmen:**
+- X_A_MERKMALE auf 10 Merkmale erweitert (Notebook 03 Zelle 22, Notebook 04)
+- Kategoriale Ergaenzungsanalyse nachgeholt (Cramer's V statt Kruskal-
+  Wallis, da wandtyp kategorial ist): wandtyp vs. io_nio zeigt KEINEN
+  signifikanten Zusammenhang (Chi2 p=0.343, Cramer's V=0.036 - praktisch
+  kein Effekt). Erwartungskonform: wandtyp beeinflusst in der
+  Generierungslogik nur den seltenen Delamination-Mechanismus (6 Faelle
+  gesamt), alle anderen 7 NIO-Kriterien sind unabhaengig von wandtyp.
+- Parametertabellen (00_parameter_kandidatenliste.csv,
+  01_parameter_final.csv) korrigiert: XB005 (wandtyp) Modell-Feld von "B"
+  auf "beide" geaendert.
+
+**Wichtige Klarstellung zur Projektarchitektur:** Die Parametertabellen
+(00/01) sind KEIN per Code generiertes/reproduzierbares Artefakt, sondern
+einmalig manuell erstelltes Planungsdokument - ihre Korrektur beeinflusst
+nicht die Reproduzierbarkeit der eigentlichen Datenpipeline (Notebook 02).
+`wandtyp` war in der Datengenerierung (Notebook 02, Zelle 05b) von Anfang
+an korrekt enthalten - das Luecke betraf ausschliesslich die
+Analyse-Referenzliste X_A_MERKMALE in Notebook 03.
+
+### Zusaetzlich (Notebook 04): Imputations- und Delamination-Entscheidungen
+
+**Imputation MCAR-Spalten (kuehlwassertemperatur, mfr_charge):**
+Median-Imputation getestet und verworfen (erzeugt kuenstlichen
+Verteilungs-Spike, groesserer Std-Abweichungsverlust: -2.3%/-2.0%).
+KNN-Imputation (n_neighbors=5) gewaehlt: naeher am Original in Std-
+Abweichung (-2.0%/-0.7%), nutzt Korrelationsstruktur zu anderen
+X_A-Merkmalen (z. B. mfr_charge<->massedruck, r=-0.74). WICHTIG fuer
+Notebook 05/06: KNNImputer muss dort nur auf Trainingsdaten gefittet
+werden (Data-Leakage-Vermeidung).
+
+**Delamination-Sonderbehandlung (MNAR):** Kein Fake-Kategorie-Ansatz
+("nicht_anwendbar" als drittes Klassifikationslabel verworfen - waere
+fuer ein Modell nur ein beliebiges drittes Label, wuerde bei naiver
+Nutzung als 3-Klassen-Ziel triviale Scheingenauigkeit erzeugen, da
+nicht_anwendbar quasi perfekt aus wandtyp ableitbar ist). Stattdessen:
+maskierter Ansatz - delamination bleibt binaer mit echten NaN,
+zusaetzliche Spalte delamination_anwendbar (0/1) fuer spaeteres
+maskiertes Training/Auswertung dieses spezifischen Labels (Standardtechnik
+bei partiell anwendbaren Multi-Label-Zielen).
+
+Naechster Schritt: DN-relative Abweichungsfeatures konstruieren (muss ueber
+einen aus X_A ableitbaren Proxy erfolgen, nicht ueber die latente DN direkt
+- sonst neues Leck).
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]

@@ -483,5 +483,74 @@ der gesamten EDA-Phase.
 
 ---
 
+## KNN-Imputation vs. Median-Imputation
+
+**Definition:** Median-Imputation ersetzt alle fehlenden Werte einer
+Spalte durch denselben Wert (den Median) - einfach, aber erzeugt eine
+kuenstliche Haeufung (Spike) an genau diesem Wert und reduziert die
+Varianz der Spalte messbar. KNN-Imputation schaetzt fehlende Werte
+stattdessen individuell je Zeile, basierend auf den Werten der k
+aehnlichsten anderen Zeilen (gemessen ueber die uebrigen Merkmale) -
+nutzt vorhandene Korrelationsstruktur, erhaelt die Verteilungsform besser.
+
+**Entscheidungskriterium:** Vergleich der Std-Abweichung vor/nach
+Imputation - je naeher am Original, desto weniger Informationsverlust.
+
+**Projektbezug:** Median-Imputation reduzierte die Std-Abweichung um
+-2.3%/-2.0% (kuehlwassertemperatur/mfr_charge) mit sichtbarem
+Verteilungs-Spike; KNN-Imputation (n_neighbors=5) nur um -2.0%/-0.7%,
+ohne kuenstlichen Spike. KNN gewaehlt. WICHTIG: KNNImputer darf im
+spaeteren Pipeline-Aufbau (Notebook 05/06) nur auf Trainingsdaten
+gefittet werden (Data-Leakage-Vermeidung, analog zu jedem anderen
+Fit-Schritt einer Pipeline).
+
+---
+
+## Maskierter Ansatz bei partiell anwendbaren Zielgroessen (MNAR)
+
+**Problem:** Wenn eine Zielgroesse fuer eine Teilmenge der Daten
+strukturell nicht anwendbar ist (z. B. Delamination nur bei doppel-
+wandigen Rohren), ist eine kuenstliche dritte Kategorie ("nicht
+anwendbar") als Klassifikationslabel methodisch problematisch: fuer ein
+Modell ist sie nur ein drittes beliebiges Label ohne semantische
+Sonderstellung. Wenn die "nicht anwendbar"-Kategorie zudem stark mit
+einem anderen, leicht verfuegbaren Merkmal korreliert (hier: perfekt mit
+wandtyp), wird die Klassifikationsaufgabe trivial loesbar und die
+Gesamtmetrik kuenstlich aufgeblaeht, ohne dass das Modell etwas
+Sinnvolles ueber das eigentliche Zielmerkmal gelernt haette.
+
+**Loesung:** Zielgroesse bleibt in ihrer urspruenglichen Form (binaer/
+numerisch), fehlende/nicht-anwendbare Werte bleiben als echte NaN
+erhalten. Zusaetzliche binaere Anwendbarkeits-Flag-Spalte wird ergaenzt.
+Training und Auswertung dieses spezifischen Labels erfolgen nur auf den
+Zeilen, wo die Flag "anwendbar" anzeigt (Maskierung) - Standardtechnik
+bei partiell anwendbaren Labels, insbesondere im Multi-Label-Learning.
+
+**Projektbezug:** delamination bleibt binaer mit NaN bei einwandigen
+Rohren, zusaetzliche Spalte delamination_anwendbar (0/1) ergaenzt.
+
+---
+
+## Cramer's V (Assoziationsstaerke bei kategorial-kategorialen Variablen)
+
+**Definition:** Analog zum Pearson-Korrelationskoeffizienten fuer
+numerische Variablen, aber fuer zwei kategoriale Variablen. Basiert auf
+dem Chi2-Test, aber normiert auf einen Wertebereich 0 bis 1 (0=kein
+Zusammenhang, 1=perfekter Zusammenhang), unabhaengig von der
+Stichprobengroesse - wichtig, weil ein Chi2-Test allein nur die
+statistische Signifikanz zeigt, nicht die praktische Effektstaerke.
+
+**Wichtige Unterscheidung:** ein Chi2-Test kann bei grossen Stichproben
+signifikant werden, obwohl der praktische Zusammenhang (Cramer's V)
+verschwindend klein ist - beide Kennzahlen sollten gemeinsam betrachtet
+werden.
+
+**Projektbezug:** wandtyp vs. io_nio: Chi2 p=0.343 (nicht signifikant),
+Cramer's V=0.036 (praktisch kein Zusammenhang). Erwartungskonform, da
+wandtyp in der Generierungslogik nur den seltenen Delamination-
+Mechanismus (6 Faelle) beeinflusst, nicht die anderen 7 NIO-Kriterien.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
