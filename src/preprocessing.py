@@ -22,32 +22,46 @@ import pandas as pd
 # -----------------------------------------------------------------------------
 # Feature-Sets (X-Varianten)
 # -----------------------------------------------------------------------------
-# "original": nur die 10 echten X_A-Prozessparameter (inkl. Encoding) -
-#             Referenz-/Baseline-Feature-Set
-# "residual": DN-bereinigte Residual-Features statt Original-Rohwerte
-#             (kategoriale Merkmale bleiben unveraendert, da residualisiert
-#             nur fuer numerische Groessen sinnvoll ist)
-# "combined": Original UND Residuen gemeinsam (mehr Dimensionen, hoeheres
-#             Overfitting-Risiko bei n=700 - im Ablationsvergleich pruefen)
-FEATURE_SETS = {
-    "original": [
-        "schneckendrehzahl", "massedurchsatz", "massetemperatur", "massedruck",
-        "duesenspalt", "abzugsgeschwindigkeit", "kalibrierdruck_mbar",
-        "kuehlwassertemperatur", "mfr_charge",
-        "wandtyp_einwandig", "mechanismus_Vakuum",
-    ],
-    "residual": [
-        "schneckendrehzahl_dn_bereinigt", "massedurchsatz_dn_bereinigt",
-        "massetemperatur_dn_bereinigt", "massedruck_dn_bereinigt",
-        "duesenspalt_dn_bereinigt", "abzugsgeschwindigkeit_dn_bereinigt",
-        "kalibrierdruck_mbar_dn_bereinigt", "kuehlwassertemperatur_dn_bereinigt",
-        "mfr_charge_dn_bereinigt",
-        "wandtyp_einwandig", "mechanismus_Vakuum",
-    ],
-}
-FEATURE_SETS["combined"] = FEATURE_SETS["original"] + [
-    c for c in FEATURE_SETS["residual"] if c.endswith("_dn_bereinigt")
+# KORREKTUR: "residual" und "combined" referenzierten bisher die in
+# Notebook 04 VORAB (auf dem Gesamtdatensatz) berechneten *_dn_bereinigt-
+# Spalten - das ist Data Leakage bei Verwendung im Modelltraining (PCA und
+# Regressionen wurden nicht nur auf Trainingsdaten gefittet). Diese Sets
+# definieren daher nur noch die BASIS-Spalten (Rohwerte + kategorial); die
+# eigentliche Residualisierung erfolgt erst innerhalb der Pipeline ueber
+# DNResidualizer (siehe unten), pro CV-Fold neu gefittet.
+#
+# "original":              9 Rohwerte + 2 kategoriale Merkmale
+# "original_no_kategorial": nur die 9 numerischen Rohwerte, ohne wandtyp/
+#                           mechanismus - prueft deren eigenstaendigen
+#                           Beitrag (siehe Cramer's V-Befund Notebook 03:
+#                           kaum eigenstaendiger Effekt erwartet)
+# "residual":               DNResidualizer wird in der Pipeline auf die
+#                           9 numerischen Basis-Spalten angewendet, plus
+#                           die 2 kategorialen Merkmale unveraendert
+# "combined":               Original-Rohwerte UND Residuen gemeinsam
+#                           (durch FeatureUnion in der Pipeline)
+NUMERISCHE_BASIS_SPALTEN = [
+    "schneckendrehzahl", "massedurchsatz", "massetemperatur", "massedruck",
+    "duesenspalt", "abzugsgeschwindigkeit", "kalibrierdruck_mbar",
+    "kuehlwassertemperatur", "mfr_charge",
 ]
+KATEGORIALE_SPALTEN = ["wandtyp_einwandig", "mechanismus_Vakuum"]
+
+FEATURE_SETS = {
+    "original": NUMERISCHE_BASIS_SPALTEN + KATEGORIALE_SPALTEN,
+    "original_no_kategorial": NUMERISCHE_BASIS_SPALTEN,
+    "residual": NUMERISCHE_BASIS_SPALTEN + KATEGORIALE_SPALTEN,  # Basis-Spalten, DNResidualizer transformiert diese in der Pipeline
+    "combined": NUMERISCHE_BASIS_SPALTEN + KATEGORIALE_SPALTEN,  # Basis-Spalten, FeatureUnion in der Pipeline fuegt Residuen hinzu
+}
+
+# Hinweis fuer Notebook 05: welche Sets brauchen DNResidualizer in der Pipeline,
+# und in welchem Modus (ersetzen vs. ergaenzen)
+FEATURE_SET_RESIDUALIZATION_MODE = {
+    "original": None,
+    "original_no_kategorial": None,
+    "residual": "replace",   # Rohwerte durch Residuen ersetzen
+    "combined": "augment",   # Residuen zusaetzlich zu Rohwerten
+}
 
 
 # -----------------------------------------------------------------------------
