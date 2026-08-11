@@ -552,5 +552,63 @@ Mechanismus (6 Faelle) beeinflusst, nicht die anderen 7 NIO-Kriterien.
 
 ---
 
+## Residualisierung (Baugroessenbereinigung ueber Regression)
+
+**Definition:** Technik, um den Anteil einer Variable zu isolieren, der
+NICHT durch eine andere (Confounder-)Variable erklaert wird: Regression
+der Zielvariable auf den Confounder, das Residuum (beobachteter Wert
+minus vorhergesagter Wert) enthaelt nur noch die vom Confounder
+unabhaengige Variation. Das Bestimmtheitsmass R² der Hilfsregression
+zeigt, wie stark eine Variable vom Confounder dominiert wird (hohes R²
+= Confounder erklaert viel, Residuum traegt viel neue Information;
+niedriges R² = Variable ist schon weitgehend confounder-unabhaengig,
+Residuum ≈ Original).
+
+**Wichtige Voraussetzung fuer Leakage-Freiheit:** der Confounder-Proxy
+muss selbst aus zulaessigen Eingangsgroessen (X) berechnet werden, nicht
+aus der eigentlichen, ggf. nicht verfuegbaren Zielgroesse oder aus
+Merkmalen, die erst nach der Zielgroessen-Entstehung bekannt sind.
+
+**Projektbezug:** DN-Proxy (PC1 aus 9 X_A-Merkmalen, r=0.984 zur
+tatsaechlichen latenten Nennweite laut Notebook 03) als Confounder fuer
+die Baugroesse. Residual-Features fuer alle X_A-Merkmale erzeugt. R²
+zeigte klare Zweiteilung: 5 Merkmale stark baugroessengetrieben (R²
+0.57-0.97), 4 Merkmale praktisch baugroessenunabhaengig (R²<0.03).
+Trennbarkeitsgewinn (Kruskal-Wallis, Silhouette) durch diese einfache
+lineare Residualisierung blieb gering - Hypothese nicht in dieser Form
+bestaetigt, aber Residuen bleiben als zusaetzliche Feature-Option
+sinnvoll (siehe generation_summary.md).
+
+---
+
+## Yeo-Johnson-Transformation - Wirkungsgrenze bei Multimodalitaet
+
+**Definition:** Power-Transformation (Verallgemeinerung von Box-Cox,
+funktioniert auch mit negativen/Null-Werten), zielt darauf ab, schiefe
+Verteilungen naeher an eine Normalverteilung heranzufuehren durch eine
+monotone, datenabhaengig parametrisierte Funktion.
+
+**Wichtige Wirkungsgrenze:** Yeo-Johnson korrigiert Schiefe (Asymmetrie)
+einer EINGIPFLIGEN Verteilung. Ist die Nicht-Normalitaet stattdessen
+durch MULTIMODALITAET verursacht (mehrere ueberlagerte Teilpopulationen/
+Cluster in denselben Daten), kann eine monotone Einzelvariablen-
+Transformation dies grundsaetzlich nicht beheben - die Mischungsstruktur
+bleibt nach der Transformation erhalten, nur auf einer anderen Skala.
+
+**Pruefmethode:** Q-Q-Plots und Shapiro-Wilk-Test vor/nach Transformation
+vergleichen; charakteristische "Stufenform" im Q-Q-Plot deutet auf
+Multimodalitaet statt reiner Schiefe hin.
+
+**Projektbezug:** 7 von 9 X_A-Merkmalen blieben nach Yeo-Johnson-
+Transformation signifikant nicht-normalverteilt (Shapiro-Wilk p<0.05
+vorher UND nachher) - konsistent mit der bereits identifizierten
+Multimodalitaet durch ueberlagerte DN-Baugroessenklassen (siehe PCA/
+Ground-Truth-Validierung, Notebook 03). Bestaetigt indirekt, dass die
+DN-Residualisierung methodisch der passendere Ansatz gegen diese
+spezifische Nicht-Normalitaetsursache ist. Yeo-Johnson nicht in die
+finale Pipeline uebernommen.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

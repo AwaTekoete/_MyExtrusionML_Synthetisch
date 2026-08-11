@@ -315,4 +315,76 @@ einen aus X_A ableitbaren Proxy erfolgen, nicht ueber die latente DN direkt
 
 ---
 
+## Notebook 04 – Preprocessing Modell A (Fortsetzung: Feature Engineering,
+## Encoding, Skalierungs-/Transformations-Vorpruefung)
+
+### DN-Proxy und Residual-Features (Blocker-C-Hypothesentest)
+
+DN-Proxy berechnet als PC1 einer PCA ausschliesslich ueber die 9
+numerischen X_A_MERKMALE (kein Zugriff auf die latente rohr_dn_latent -
+Leakage-frei). Erklaert 48.2% Varianz. Fuer jedes Merkmal per lineare
+Regression auf den DN-Proxy der baugroessenerklaerte Anteil (R²) bestimmt:
+
+| Gruppe | Merkmale | R² | Einordnung |
+|---|---|---|---|
+| Stark baugroessengetrieben | massedurchsatz (0.970), abzugsgeschwindigkeit (0.952), schneckendrehzahl (0.913), duesenspalt (0.886), kalibrierdruck_mbar (0.574) | >0.5 | Residuum liefert neue, baugroessenunabhaengige Information |
+| Baugroessenunabhaengig | massetemperatur (0.000), kuehlwassertemperatur (0.005), mfr_charge (0.013), massedruck (0.028) | <0.05 | Residuum ≈ Original, redundant |
+
+9 Residual-Features (`<merkmal>_dn_bereinigt`) erzeugt.
+
+**Validierung der Blocker-C-Hypothese:** Kruskal-Wallis auf Residual-
+Features: 4 von 9 signifikant (vs. 5 von 9 bei Original-X_A). Silhouette-
+Score: 0.0152 (vs. 0.017 Original) - praktisch unveraendert. **Hypothese
+bestaetigt sich in dieser einfachen linearen Form NICHT** - kein
+dramatischer Trennbarkeitsgewinn durch DN-Bereinigung. Interessante
+Verschiebung im Detail: bei massedurchsatz/abzugsgeschwindigkeit (R²>0.95)
+verschwindet die Signifikanz nach Bereinigung (ihr urspruenglicher
+IO/NIO-Zusammenhang kam ueberwiegend ueber die Baugroesse selbst zustande);
+massedruck wird dagegen neu signifikant (vorher durch Rauschen/
+Baugroesseneffekt ueberdeckt). Residual-Features werden ZUSAETZLICH zu
+Original-Werten fuer den spaeteren Ablationsvergleich (Notebook 05/06)
+mitgefuehrt, nicht als Ersatz. Vermutung: die Zielgroessen-Varianten
+(kontinuierlicher Abstand, Multi-Label) sind der wirksamere Hebel als
+reine Feature-Bereinigung, konsistent mit dem strukturellen Bayes-
+Noise-Floor (F1=0.447).
+
+### Encoding kategorialer Merkmale
+
+One-Hot-Encoding fuer wandtyp (2 Kategorien) und kalibriermechanismus
+(2 Kategorien) - kein Leakage-Risiko, da Kategorienliste endlich/bekannt
+ist (im Gegensatz zu Skalierungsstatistiken).
+
+### Skalierung (Vorschau) und Yeo-Johnson-Transformation (Vorpruefung)
+
+Skalierungs-Vorschau (StandardScaler) bestaetigt korrekte
+Vereinheitlichung sehr unterschiedlicher Wertebereiche (Mean~0, Std~1).
+Finale Skalierung erfolgt leakage-sicher in der Pipeline (Notebook 05/06,
+fit nur auf Trainingsdaten).
+
+Yeo-Johnson-Transformation explorativ getestet (Frage: hilft eine
+verteilungsform-veraendernde Transformation gegen die in Notebook 03
+festgestellte Nicht-Normalverteilung der meisten X_A-Merkmale?).
+**Ergebnis: kaum Wirkung** - 7 von 9 Merkmalen bleiben signifikant
+nicht-normal (Shapiro-Wilk p<0.05) vor UND nach Transformation.
+Nur massetemperatur und mfr_charge waren schon vorher normalverteilt
+und blieben es. kuehlwassertemperatur komplett unveraendert (p=0.0001
+in beiden Faellen, vermutlich Clipping-Randeffekt statt Schiefe).
+
+**Ursachenanalyse:** Yeo-Johnson korrigiert Schiefe einer eingipfligen
+Verteilung, kann aber Multimodalitaet (mehrere ueberlagerte Baugroessen-
+Teilpopulationen, siehe DN-Analyse oben) nicht beheben - eine monotone
+Transformation einer Variable kann eine Mischung mehrerer Teilpopulationen
+nicht in eine einzelne Glockenkurve ueberfuehren. Bestaetigt indirekt,
+dass der DN-Residualisierungsansatz methodisch die richtigere
+Herangehensweise war, auch wenn er die Trennbarkeit nicht dramatisch
+verbesserte. Yeo-Johnson wird NICHT in die finale Pipeline aufgenommen
+(kein belegter Nutzen). Falls lineare Modelle im spaeteren Modellvergleich
+mitgefuehrt werden, sollten sie eher auf DN-residualisierten Features
+trainiert werden als auf Yeo-Johnson-transformierten Rohwerten.
+
+Naechster Schritt: Zielgroessen-Varianten integrieren, finale
+sklearn.Pipeline aufbauen, Preprocessing-Validierungs-EDA.
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
