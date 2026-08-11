@@ -27,7 +27,7 @@ XB001,Auftragsvorgabe,B,X,Durchmesser (Soll),mm,direkt gemessen,Bestellangabe,,2
 XB002,Auftragsvorgabe,B,X,Wandstaerke (Soll),mm,direkt gemessen,Bestellangabe,,1.0-4.0,eigene Herleitung,vermutlich vorhanden,Ja,Kern-Auftragsparameter
 XB003,Auftragsvorgabe,B,X,Wellhoehe (Soll),mm,direkt gemessen,Bestellangabe/Norm,,abhaengig von DN,eigene Herleitung,vermutlich vorhanden ueber Norm/Zeichnung,Ja,wellrohrspezifisch
 XB004,Auftragsvorgabe,B,X,Wellteilung (Soll),mm,direkt gemessen,Bestellangabe/Norm,,abhaengig von DN,eigene Herleitung,vermutlich vorhanden,Ja,wellrohrspezifisch
-XB005,Auftragsvorgabe,B,X,Wandtyp,kategorisch,direkt gemessen,Bestellangabe,,einwandig/doppelwandig,eigene Herleitung + UNICOR Produktdaten,vermutlich vorhanden,Ja,bestimmt Prozessfuehrung deutlich
+XB005,Auftragsvorgabe,beide,X,Wandtyp,kategorisch,direkt gemessen,Bestellangabe,,einwandig/doppelwandig,eigene Herleitung + UNICOR Produktdaten,vermutlich vorhanden,Ja,"bestimmt Prozessfuehrung deutlich | NACHTRAEGLICH KORRIGIERT (Notebook 04): wandtyp gehoert auch zu X_A_MERKMALE, wurde bei Delamination-Sonderbehandlung (Notebook 04 Zelle 03) als fehlend erkannt und retroaktiv ergaenzt - Modell-Feld von B auf beide korrigiert."
 XB006,Auftragsvorgabe,B,X,Material,kategorisch,direkt gemessen,Bestellangabe,,HDPE (Referenz),eigene Herleitung,vermutlich vorhanden,Ja,als Konstante fixiert (ein Material Annahme)
 XB007,Auftragsvorgabe,B,X,MFR Charge,g/10min,direkt gemessen,Laborwert,,0.3-1.2,eigene Herleitung,unbekannt - zu klaeren,Ja,Chargenschwankung trotz gleichem Material
 XB008,Auftragsvorgabe,B,X,Muffe,kategorisch,direkt gemessen,Bestellangabe,,Ja/Nein,eigene Herleitung,vermutlich vorhanden,Ja,beeinflusst Linienkonfiguration
