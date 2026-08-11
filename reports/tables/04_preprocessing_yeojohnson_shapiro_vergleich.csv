@@ -1,0 +1,10 @@
+Merkmal,p_Original,p_YeoJohnson,Normal_vorher,Normal_nachher
+schneckendrehzahl,0.0,0.00274,False,False
+massedurchsatz,0.0,0.00087,False,False
+massetemperatur,0.10373,0.82426,True,True
+massedruck,0.0,0.0272,False,False
+duesenspalt,0.0,0.00074,False,False
+abzugsgeschwindigkeit,0.0,0.00194,False,False
+kalibrierdruck_mbar,0.0,0.0,False,False
+kuehlwassertemperatur,8e-05,8e-05,False,False
+mfr_charge,0.33459,0.33279,True,True

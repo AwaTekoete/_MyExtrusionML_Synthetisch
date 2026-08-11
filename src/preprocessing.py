@@ -188,3 +188,68 @@ def select_dataset(df, feature_set_name, target_variant_name, respect_mask=True)
     y, valid_mask = get_target(df, target_variant_name, respect_mask=respect_mask)
     X = get_feature_set(df.loc[valid_mask], feature_set_name)
     return X, y
+
+# =============================================================================
+# DNResidualizer - leakage-sicherer sklearn-Transformer
+# =============================================================================
+# Ersetzt die explorative Residualisierung aus Notebook 04 (dort auf dem
+# GESAMTEN Datensatz berechnet - nur fuer die EDA/Validierung zulaessig,
+# NICHT fuer das eigentliche Modelltraining). Dieser Transformer lernt
+# PCA-Achse (dn_proxy) und die numerischen Regressionen AUSSCHLIESSLICH in
+# fit() aus den ihm uebergebenen Daten - bei Verwendung in einer
+# sklearn.Pipeline geschieht das automatisch nur auf dem jeweiligen
+# Trainings-Fold, transform() wendet die gelernten Parameter unveraendert
+# auf Trainings- UND Testdaten an. Strukturell leakage-sicher.
+# =============================================================================
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.linear_model import LinearRegression
+
+
+class DNResidualizer(BaseEstimator, TransformerMixin):
+    """
+    Berechnet DN-bereinigte Residual-Features fuer numerische X_A-Merkmale.
+
+    fit(X): lernt StandardScaler, PCA(1 Komponente) -> dn_proxy, und je
+            numerischem Merkmal eine LinearRegression auf dn_proxy -
+            ausschliesslich aus den in fit() uebergebenen Daten (bei
+            Pipeline-Nutzung: nur Trainings-Fold).
+    transform(X): wendet die gelernten Parameter an, gibt die Residuen
+                  (und optional dn_proxy) fuer beliebige neue Daten zurueck.
+    """
+
+    def __init__(self, numerische_spalten, include_dn_proxy=False):
+        self.numerische_spalten = numerische_spalten
+        self.include_dn_proxy = include_dn_proxy
+
+    def fit(self, X, y=None):
+        X = pd.DataFrame(X, columns=self.numerische_spalten) if not isinstance(X, pd.DataFrame) else X
+        self.scaler_ = StandardScaler().fit(X[self.numerische_spalten])
+        X_scaled = self.scaler_.transform(X[self.numerische_spalten])
+
+        self.pca_ = PCA(n_components=1, random_state=42).fit(X_scaled)
+        dn_proxy_train = self.pca_.transform(X_scaled).flatten()
+
+        self.regressions_ = {}
+        for col in self.numerische_spalten:
+            lr = LinearRegression().fit(dn_proxy_train.reshape(-1, 1), X[col])
+            self.regressions_[col] = lr
+
+        return self
+
+    def transform(self, X):
+        X = pd.DataFrame(X, columns=self.numerische_spalten) if not isinstance(X, pd.DataFrame) else X
+        X_scaled = self.scaler_.transform(X[self.numerische_spalten])
+        dn_proxy = self.pca_.transform(X_scaled).flatten()
+
+        residuen = pd.DataFrame(index=X.index)
+        for col in self.numerische_spalten:
+            vorhersage = self.regressions_[col].predict(dn_proxy.reshape(-1, 1))
+            residuen[f"{col}_dn_bereinigt"] = X[col].values - vorhersage
+
+        if self.include_dn_proxy:
+            residuen["dn_proxy"] = dn_proxy
+
+        return residuen
