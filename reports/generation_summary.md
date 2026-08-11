@@ -513,6 +513,41 @@ Messung (Train-CV-Gap als Overfitting-Diagnose), dann Ergebnisanalyse
 (Effekt Feature-Set, Modelltyp, Zielgroessen-Variante; Naive-Bayes-
 Vergleich als Negativ-Beleg; Einordnung gegen Bayes-Noise-Floor).
 
+### Hyperparameter-Kalibrierung (Abgrenzung zu Tuning, AP 3.6)
+
+Nach der ersten vollstaendigen Ablationsschleife (104/104 erfolgreich)
+zeigte die Train-CV-Gap-Messung bei allen vier Baummodellen (RandomForest,
+HistGradientBoosting, XGBoost, LightGBM) train_f1≈1.0 bei binaerer
+Zielgroesse - vollstaendiges Auswendiglernen der Trainingsdaten, macht den
+Gap-Vergleich zwischen diesen Modellen uninformativ.
+
+**Wichtige methodische Abgrenzung:** Einzelne, offensichtlich degenerierte
+Standardwerte fuer die gegebene Datenmenge (n=560/448 pro Fold) zu
+korrigieren ist KEIN Hyperparameter-Tuning (systematische Suche nach dem
+besten Wert, vorgesehen fuer AP 3.6), sondern Vermeidung eines Artefakts,
+das jeden sinnvollen Modellvergleich verzerren wuerde.
+
+**Korrekturschritte (zwei Iterationen, jeweils mit Zelle-7-Check
+verifiziert, nicht blind uebernommen):**
+- Iteration 1 (nur Baumtiefe begrenzt: max_depth=8 RandomForest, max_depth=6
+  Boosting-Verfahren): RandomForest deutlich verbessert (train_f1 1.0->0.63-0.72),
+  Boosting-Verfahren kaum veraendert (train_f1 weiterhin ~0.99-1.00) -
+  Baumtiefe allein reicht bei Boosting-Ensembles mit vielen (200)
+  aufeinanderfolgenden Baeumen nicht aus.
+- Iteration 2 (Ensemble-Kapazitaet direkt adressiert): n_estimators 200->50,
+  zusaetzlich subsample=0.8, colsample_bytree=0.8 (Zeilen-/Spalten-
+  Subsampling je Baum), min_samples_leaf/min_child_samples erhoeht,
+  L2-Regularisierung (reg_lambda=2.0 XGBoost, l2_regularization=1.0
+  HistGradientBoosting). Ergebnis: train_f1 sank auf 0.47-0.72 bei allen
+  vier Baummodellen, Gap von ~0.75 auf 0.27-0.53 reduziert.
+
+**Bewusster Stopp-Punkt:** verbleibender Gap (0.27-0.53) als plausibel
+akzeptiert angesichts n≈448 und dem bekannten Bayes-Noise-Floor (F1=0.447) -
+ein gewisser Train-Val-Unterschied ist bei dieser Datenmenge normal.
+Weiteres iteratives Nachjustieren wuerde die Grenze zu echtem Tuning
+ueberschreiten - bewusst hier gestoppt, verbleibende Optimierung bleibt
+AP 3.6 vorbehalten.
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
