@@ -898,6 +898,39 @@ Naechster Schritt: Abschluss-Markdown Notebook 06, AP 3.6 formal
 abgeschlossen. Uebergang zu Modell B (Datengenerierung, EDA,
 Preprocessing, Training - analog zum kompletten Weg von Modell A).
 
+### Visualisierung: vier Overlay-Grafiken (Notebook 06, Zellen 08-13)
+
+Die vier Analysegrafiken aus Notebook 05 wurden fuer Notebook 06 als
+Overlays neu konzipiert - Default-Verteilung (Notebook 05) als
+Referenz-Hintergrund, getunte Werte als goldene Stern-Marker darauf
+projiziert. Bewusste Abweichung von reiner Wiederholung: Grafik 2/3
+(Feature-Set-/Modelltyp-Effekt) waeren bei reiner Neuerstellung nicht
+aussagekraeftig gewesen (kein Feature-Set-Vergleich mehr, da pro Modell
+auf ein Set fixiert) - als Overlay auf der bestehenden Verteilung
+dagegen sehr informativ (zeigt, wo sich das getunte Modell relativ zur
+gesamten bisherigen Streuung einordnet).
+
+- **Grafik 1** (Balkendiagramm Default vs. getunt, 3 Subplots je
+  Zielgroesse, korrekte Metrik-Achsen): direktester Vorher-Nachher-Blick
+- **Grafik 2** (Feature-Set-Boxplot-Overlay): getunte binaere Modelle
+  liegen deutlich ueber allen Whiskern; continuous-Sterne (Ridge,
+  RandomForest) liegen unterhalb aller Boxen inkl. Ausreisser
+- **Grafik 3** (Modelltyp-Boxplot-Overlay, horizontal): bestaetigt
+  dasselbe Muster aus der Modell- statt Feature-Set-Perspektive
+- **Grafik 4** (Overfitting-Diagnose-Overlay): binaere getunte Modelle
+  liegen im Idealbereich (hohe Guete, minimaler Gap) sogar noch praeziser
+  gebuendelt als im Default-Zustand; continuous-Sterne liegen ausserhalb
+  der gesamten Punktwolke (schlechter als jede Default-Kombination);
+  multilabel-Sterne rutschen ins Mittelfeld, deutlich unter ihre
+  urspruengliche Spitzenposition
+
+Alle vier Grafiken bestaetigen konsistent: Tuning-Nutzen ist stark
+zielgroessen-/datenmengenabhaengig, kein pauschaler Erfolg.
+
+Gespeichert: reports/figures/06_grafik1_mit_tuning_overlay.png,
+06_grafik2_overlay_feature_set.png, 06_grafik3_overlay_modelltyp.png,
+06_grafik4_overlay_overfitting.png
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
