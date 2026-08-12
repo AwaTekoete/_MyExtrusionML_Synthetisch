@@ -937,5 +937,30 @@ als methodischer Befund interpretiert.
 
 ---
 
+## Multi-Kriterien-Modellauswahl statt reiner Metrik-Maximierung
+
+**Konzept:** Bei kleinen Unterschieden zwischen Top-Kandidaten (innerhalb
+der CV-Streuung) ist eine Entscheidung allein nach der hoechsten Punktzahl
+einer einzelnen Metrik nicht robust begruendbar. Professionelle
+Modellauswahl beruecksichtigt stattdessen mehrere Dimensionen gemeinsam:
+- Guete (mehrere Metriken gleichzeitig, nicht nur eine)
+- Robustheit (Overfitting-Gap, Sensitivitaet gegenueber Rahmenbedingungen
+  wie Feature-Set-Wahl)
+- Praktische Eignung (Interpretierbarkeit, Erklaerbarkeits-Aufwand,
+  Rechenzeit, Speicherbedarf)
+
+**Vorgehen bei aehnlich starken Kandidaten:** statt einer einzelnen
+"Gewinner"-Entscheidung eine begruendete Shortlist bilden, wenn die
+Differenzierungskriterien (hier: SHAP-Geschwindigkeit) erst in einem
+spaeteren Arbeitsschritt empirisch pruefbar sind. Vermeidet eine
+verfruehte, nicht robust begruendbare Festlegung.
+
+**Projektbezug:** Modell A, binaere Zielgroesse - GaussianNB (staerkste
+Guete), LogisticRegression (beste SHAP-Eignung/Interpretierbarkeit), SVC
+(robusteste Feature-Set-Unabhaengigkeit) als parallele Shortlist in
+AP 3.6/3.7 weitergefuehrt, statt vorzeitiger Einzelentscheidung.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

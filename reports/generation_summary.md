@@ -751,6 +751,62 @@ erreichen dabei nie Top-Werte.
 Naechster Schritt: konsolidierte Zusammenfassung/Champion-Diskussion,
 danach Uebergang zu AP 3.6 (systematisches Hyperparameter-Tuning).
 
+### Champion-Kandidaten-Diskussion (Zellen 26-27)
+
+Vollstaendige Kandidaten-Tabelle erstellt: alle bereits berechneten
+quantitativen Metriken (F1, Precision, Recall, MCC, ROC-AUC, Train-CV-Gap,
+Feature-Set-Spannweite, Fit-Zeit) kombiniert mit dokumentiertem
+Fachwissen zu qualitativen Modelleigenschaften (Interpretierbarkeit,
+Black-Box-Status, SHAP-Explainer-Typ) - relevant fuer die spaetere
+SHAP-Integration im Streamlit-Demonstrator (AP 3.7, fest zugesagtes
+Feature).
+
+**Wichtiger methodischer Hinweis:** F1-Unterschiede zwischen den Top-
+Kandidaten sind klein relativ zur Fold-zu-Fold-Streuung (Std typischerweise
+0.03-0.09) - eine Rangfolge auf die dritte Nachkommastelle waere unseriös.
+Bewertung erfolgte daher ueber mehrere Kriterien gemeinsam (Guete +
+Robustheit + SHAP-Eignung), nicht allein ueber die hoechste F1-Zahl.
+
+**Binaere Zielgroesse, vier engste Kandidaten im Detailvergleich:**
+
+| Modell | F1 | Precision | Recall | MCC | Gap | Feature-Spannweite | SHAP |
+|---|---|---|---|---|---|---|---|
+| GaussianNB | 0.423 | 0.350 | 0.556 | 0.161 | 0.032 | 0.131 | approximativ |
+| SVC | 0.410 | 0.338 | 0.520 | 0.144 | 0.142 | 0.018 | approximativ, langsam |
+| LightGBM | 0.395 | 0.341 | 0.473 | 0.130 | 0.307 | 0.033 | exakt, schnell |
+| LogisticRegression | 0.382 | 0.294 | 0.548 | 0.072 | 0.070 | 0.008 | exakt, schnell |
+
+GaussianNB gewinnt konsistent bei F1, Precision, Recall UND MCC
+gleichzeitig (kein Trade-off-Artefakt, echter Gesamtvorteil) bei
+gleichzeitig sehr niedrigem Overfitting-Gap. LightGBM/HistGradientBoosting
+erreichen aehnliche F1-Werte, aber mit deutlich hoeherem Gap (0.30-0.34) -
+Guete teilweise durch Auswendiglernen erkauft, weniger vertrauenswuerdig
+fuer echte Generalisierung.
+
+**Finale Drei-Kandidaten-Shortlist (bewusst KEIN einzelner Champion,
+Entscheidung vertagt auf AP 3.6/3.7):**
+1. **GaussianNB** - mathematisch staerkster Kandidat (F1/Precision/Recall/
+   MCC/Gap durchgaengig vorn), aber nur approximatives, langsameres SHAP
+2. **LogisticRegression** - taktischer Kandidat: exaktes, schnelles SHAP
+   (LinearExplainer), direkt interpretierbare Koeffizienten, sehr
+   niedrigste Feature-Set-Spannweite (0.008) - Demo-Tauglichkeit als
+   Hauptargument trotz etwas niedrigerer Guete
+3. **SVC** - dritte Option: F1 knapp hinter GaussianNB, robustester
+   Kandidat gegenueber Feature-Set-Wahl (Spannweite 0.018), aber
+   ebenfalls nur approximatives und zusaetzlich langsames SHAP (Kernel-
+   Explainer mit RBF-Kernel)
+
+Begruendung fuer Shortlist statt Einzelentscheidung: die Guete-Unterschiede
+liegen im Rauschbereich der CV-Streuung; die eigentliche Differenzierung
+(SHAP-Geschwindigkeit in der Live-Demo) ist erst in AP 3.7 empirisch zu
+pruefen, nicht vorab zu entscheiden.
+
+Vollstaendige Tabelle: reports/tables/05_champion_kandidaten_komplett.csv
+
+Naechster Schritt: Abschluss-Markdown Notebook 05, AP 3.4 formal
+abgeschlossen. Shortlist (GaussianNB, LogisticRegression, SVC) geht in
+AP 3.6 (Hyperparameter-Tuning) und AP 3.7 (Evaluation, SHAP) weiter.
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
