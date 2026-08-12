@@ -962,5 +962,62 @@ AP 3.6/3.7 weitergefuehrt, statt vorzeitiger Einzelentscheidung.
 
 ---
 
+## Nested Cross-Validation
+
+**Definition:** Zwei ineinander verschachtelte CV-Schleifen fuer
+Hyperparameter-Tuning: die AEUSSERE Schleife schaetzt die finale,
+unverzerrte Performance (wie gut ist das jeweils beste gefundene Modell
+wirklich, auf komplett unbeteiligten Daten), die INNERE Schleife sucht
+innerhalb jedes aeusseren Trainingsblocks nach den besten Hyperparametern.
+Vermeidet den klassischen Fehler, dieselben Daten sowohl fuer Hyper-
+parameter-Auswahl als auch fuer die Performance-Bewertung zu nutzen
+(wuerde die Guete optimistisch verzerren).
+
+**Wichtige Eigenschaft:** die Anzahl innerer Folds beeinflusst NICHT die
+Vergleichbarkeit mit vorherigen Ergebnissen - entscheidend ist, ob
+dieselben AEUSSEREN Fold-Partitionen wiederverwendet werden. Ermoeglicht
+einen sauberen Vorher-Nachher-Vergleich (Default- vs. getunte Hyper-
+parameter) auf identischen Testpartitionen.
+
+**Wichtiger Stolperstein:** der scoring-Parameter der inneren Suche muss
+mit der tatsaechlich berichteten Hauptmetrik uebereinstimmen - sonst
+optimiert die innere Schleife ein anderes Ziel als das, was am Ende
+bewertet wird, und der Vergleich wird irrefuehrend.
+
+**Projektbezug:** Notebook 06, 5 aeussere x 5 innere Folds, aeussere
+Folds identisch zu Notebook 05 reproduziert.
+
+---
+
+## Instabile Hyperparameter-Wahl bei kleinen Datenmengen (Grenzen von Tuning)
+
+**Konzept:** Systematisches Hyperparameter-Tuning setzt voraus, dass die
+innere Validierungsmenge gross/repraesentativ genug ist, um eine robuste
+Wahl zu treffen. Bei kleinen Datenmengen (insbesondere kombiniert mit
+seltenen Zielklassen) kann die innere Suche stattdessen auf Zufallsrauschen
+der jeweiligen inneren Folds reagieren - das Ergebnis ist dann nicht
+generalisierbar, sondern zufaellig.
+
+**Diagnosemethode:** die von der inneren Suche gewaehlten "besten"
+Hyperparameter ueber die mehreren aeusseren Folds hinweg vergleichen.
+Grosse, unsystematische Schwankungen (z.B. ueber mehrere Groessenordnungen
+ohne erkennbares Muster) deuten auf Instabilitaet hin, nicht auf ein
+echtes Optimum.
+
+**Praktische Konsequenz:** wenn die Diagnose Instabilitaet zeigt, sollten
+die getunten Werte NICHT automatisch uebernommen werden, auch wenn Tuning
+grundsaetzlich "wissenschaftlicher" wirkt als ein Sane-Default. Ein
+begruendeter, stabiler Standardwert kann in diesem Fall verlaesslicher
+sein als ein formal optimiertes, aber instabiles Ergebnis.
+
+**Projektbezug:** Notebook 06, multilabel-Zielgroesse (LogisticRegression/
+SVC via MultiOutputClassifier ueber 9 teils extrem seltene Labels) -
+Best-Params schwankten ueber die 5 aeusseren Folds um mehrere Groessen-
+ordnungen ohne Muster. Getunte Werte verworfen, Sane-Default-Werte aus
+Notebook 05 beibehalten - explizit dokumentierte Entscheidung gegen das
+eigene Tuning-Ergebnis.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

@@ -809,4 +809,95 @@ AP 3.6 (Hyperparameter-Tuning) und AP 3.7 (Evaluation, SHAP) weiter.
 
 ---
 
+## Notebook 06 – Hyperparameter-Tuning Modell A (AP 3.6)
+
+### Vorbereitung: Empirische Zeitschaetzung vor Nested-CV-Schleife
+
+Vor dem vollstaendigen Durchlauf wurde eine Pilot-Messung (ein Fit je
+Kandidat) durchgefuehrt, um die Gesamtlaufzeit realistisch abzuschaetzen -
+vermeidet ungeplant lange Rechenzeiten. Zwei Probleme dabei aufgedeckt
+und behoben:
+
+1. **Reihenfolge-Fehler:** Pipeline-Builder-Funktionen (baue_preprocessing_
+   pipeline, DNResidualizer) wurden zunaechst NACH der Pilot-Messung
+   definiert - erste Messung lief dadurch auf einer fehlerhaften, nicht
+   skalierten Pipeline. Nach Umsortierung (Pipeline-Builder vor Pilot-
+   Messung) korrigiert - wichtige Lehre: Notebooks muessen von oben nach
+   unten ohne Vorgriffe ausfuehrbar sein.
+
+2. **ConvergenceWarning bei LogisticRegression:** lbfgs-Solver konvergierte
+   bei binaerer UND multilabel Zielgroesse nicht zuverlaessig (dominierte
+   bei multilabel 80% der geschaetzten Gesamtlaufzeit: 2321 von 2861
+   Sekunden). Ursache: mehrere der 9 Multi-Label-Kriterien sind extrem
+   selten (Shannon-Entropie-Analyse, Notebook 03), kombiniert mit
+   class_weight="balanced" wird lbfgs numerisch instabil. Behoben durch
+   solver="liblinear" (robuster bei kleinen, unbalancierten Teilproblemen).
+   Ergebnis: Gesamtlaufzeit-Schaetzung von 47.7 auf 7.6 Minuten reduziert.
+
+### Nested-CV-Tuning (8 Kandidaten, 5 aeussere x 5 innere Folds)
+
+Aeussere Folds identisch zu Notebook 05 reproduziert (gleicher SEED,
+gleiche Methode) - stellt sicher, dass Vorher-Nachher-Vergleich (Default-
+vs. getunte Hyperparameter) auf denselben Datenpartitionen erfolgt.
+Feature-Set pro Modell auf das jeweils beste aus Notebook 05 fixiert
+(keine erneute Feature-Set-Suche - diese Frage bereits in AP 3.4
+datengetrieben beantwortet: kein systematischer Feature-Set-Effekt).
+
+**Root-Cause-Korrektur waehrend der Durchfuehrung:** scoring fuer binaere
+Zielgroesse war zunaechst "f1_macro" gesetzt - inkonsistent zur
+bisherigen Hauptmetrik (NIO-spezifisches F1). Korrigiert auf
+make_scorer(f1_score, pos_label="NIO") - die innere Grid-Search muss
+dasselbe Ziel optimieren, das auch berichtet wird, sonst ist der
+Vergleich nicht aussagekraeftig.
+
+### Ergebnis: Vorher-Nachher-Vergleich (Default- vs. getunte Hyperparameter)
+
+| Zielgroesse | Modell | Default | Getunt | Differenz |
+|---|---|---|---|---|
+| binary | GaussianNB | 0.423 | 0.420 | -0.003 |
+| binary | LogisticRegression | 0.382 | 0.423 | **+0.041** |
+| binary | SVC | 0.410 | 0.423 | +0.013 |
+| multilabel | GaussianNB | 0.078 | 0.085 | +0.007 |
+| multilabel | LogisticRegression | 0.115 | 0.088 | -0.027 |
+| multilabel | SVC | 0.108 | 0.098 | -0.010 |
+| continuous | Ridge | -0.001 | 0.016 | +0.017 |
+| continuous | RandomForest | -0.030 | 0.022 | +0.052 |
+
+**Binaer - wichtigstes Ergebnis:** Nach Tuning liegen alle drei Shortlist-
+Kandidaten praktisch GLEICHAUF (0.420-0.423) - GaussianNB ist nicht mehr
+klar fuehrend, LogisticRegression/SVC holen den vollen Rueckstand auf.
+Staerkt die taktische Wahl von LogisticRegression zusaetzlich (schnelles,
+exaktes SHAP bei nun gleichwertiger Guete). GaussianNB zeigt erwartungs-
+gemaess kaum Veraenderung (-0.003) - nur eine sinnvolle Stellschraube
+(var_smoothing) vorhanden, bestaetigt die Vermutung aus der Shortlist-
+Diskussion empirisch.
+
+**Multilabel - wichtiger Negativbefund, tiefergehend diagnostiziert:**
+LogisticRegression/SVC verschlechtern sich nach Tuning. Diagnose (Best-
+Params je der 5 aeusseren Folds) zeigt: KEINE konsistente "beste"
+Hyperparameter-Wahl - C schwankt bei LogReg ueber drei Groessenordnungen
+(0.01 bis 10.0) ohne Muster, SVC aehnlich instabil bei C und gamma.
+**Schlussfolgerung:** die innere 5-Fold-Suche ist bei nur ~448
+Trainingszeilen pro aeusserem Fold UND einem MultiOutputClassifier ueber
+9 teils extrem seltene Labels zu instabil fuer eine robuste Hyperparameter-
+Wahl - die Suche optimiert teilweise auf Zufallsrauschen einzelner innerer
+Folds, nicht auf ein echtes, generalisierbares Signal. Kein Fehler in der
+Implementierung, sondern eine Grenze des Tuning-Ansatzes bei dieser
+Datenmenge/Label-Verteilung.
+
+**Praktische Konsequenz:** Fuer multilabel werden die Sane-Default-Werte
+aus Notebook 05 beibehalten (nicht die getunten) - dokumentierte,
+begruendete Entscheidung gegen das eigene Tuning-Ergebnis, wenn dessen
+Verlaesslichkeit selbst fraglich ist. Fuer binaer werden die getunten
+Werte uebernommen (echter, robuster Verbesserungseffekt nachgewiesen).
+
+Gespeichert: reports/tables/06_tuning_results.csv,
+reports/tables/06_tuning_vorher_nachher.csv
+
+Naechster Schritt: Abschluss-Markdown Notebook 06, AP 3.6 formal
+abgeschlossen. Uebergang zu Modell B (Datengenerierung, EDA,
+Preprocessing, Training - analog zum kompletten Weg von Modell A).
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
