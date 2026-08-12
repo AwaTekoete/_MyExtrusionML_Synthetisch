@@ -759,5 +759,77 @@ reports/tables/05_ablation_results.csv umgesetzt.
 
 ---
 
+## Bayes-Floor als Referenzlinie in Ergebnisgrafiken
+
+**Definition:** Die in Notebook 03 berechnete theoretische Obergrenze
+(F1=0.447) wird in Modellvergleichsgrafiken als horizontale Referenzlinie
+eingezeichnet - nicht 1.0 (perfekte Klassifikation), sondern dieser Wert
+ist der korrekte Massstab, an dem jedes Modellergebnis gemessen werden
+sollte, da er die durch Datenrauschen bedingte, unerreichbare Grenze
+markiert.
+
+**Abhaengigkeit von Zielgroessen-/Feature-Definition:** Der Bayes-Floor
+ist NICHT unveraenderlich - er wurde spezifisch fuer die binaere
+Zielgroesse io_nio UND unter der Annahme berechnet, dass nur X_A-
+Merkmale als Eingabe zur Verfuegung stehen (kein Zugriff auf Y_A-
+Qualitaetsmesswerte). Eine andere Zielgroessen-Definition (z.B.
+kontinuierlicher Sicherheitsabstand) hat eine ANDERE theoretische
+Obergrenze - fuer Regression gilt statt Bayes-Error die Rausch-
+Standardabweichung als Grenze (siehe Glossar-Eintrag "Bayes-optimale
+Klassifikationsguete"). Ebenso wuerden zusaetzliche, informativere
+Features (die den irreduziblen Rauschanteil verringern wuerden) den
+Bayes-Floor selbst nach oben verschieben - er ist eine Eigenschaft der
+KOMBINATION aus Datengenerierungsprozess UND verfuegbaren Eingabegroessen,
+nicht eine feste Konstante des Problems an sich.
+
+---
+
+## Multi-Label vs. binaer: Aufgabenschwierigkeit nicht gleichzusetzen mit Informationsgehalt
+
+**Klarstellung (haeufiges Missverstaendnis):** Dass ein binaeres Modell
+und ein Multi-Label-Modell (nach Rueckuebersetzung) aehnlich gut
+abschneiden, widerspricht NICHT der Informationsverlust-Theorie bei
+Dichotomisierung. Das binaere Modell trifft eine einzelne Entscheidung;
+das Multi-Label-Modell muss NEUN unabhaengige Einzelentscheidungen
+treffen (von denen mehrere extrem seltene Ereignisse betreffen, siehe
+Shannon-Entropie-Diskussion) und wird erst danach zu einem einzelnen
+Label aggregiert - das ist eine schwerere Aufgabe mit mehr
+Fehlerquellen, kein Informationsvorteil gegenueber binaer. Die eigentliche
+Bestaetigung des Informationsverlust-Arguments liegt in der kontinuierlichen
+Variante: sie enthaelt nachweislich mehr Information als binaer
+(Korrelation -0.604 statt ±1.0 zum binaeren Label), verliert diesen
+Vorteil aber teilweise wieder durch die notwendige Rueckuebersetzung
+ueber einen Schwellenwert.
+
+---
+
+## Schwellenwert-Abhaengigkeit bei binaerer Klassifikation
+
+**Konzept:** Auch bei "binaeren" Klassifikatoren gibt es intern meist
+einen kontinuierlichen Score (Wahrscheinlichkeit bei LogReg/GaussianNB/
+Baummodellen, Distanz zur Trennebene bei SVM), der erst durch einen
+Schwellenwert (Standard: 0.5 bei Wahrscheinlichkeiten) in eine finale
+Klassenzuordnung uebersetzt wird. Dieser Schwellenwert ist eine
+DESIGNENTSCHEIDUNG, keine feste Eigenschaft des Modells - eine
+Verschiebung veraendert Precision/Recall-Tradeoff und damit F1.
+sklearn verwendet 0.5 als Default fuer .predict(), waehrend
+.predict_proba() den zugrunde liegenden Score liefert, auf den ein
+beliebiger anderer Schwellenwert angewendet werden kann.
+
+**Projektbezug:** Bei "continuous" wird analog ein Schwellenwert (aktuell
+0 am Sicherheitsabstand) fuer die Rueckuebersetzung verwendet - auch
+dieser ist nicht zwingend optimal und koennte wie beim Bayes-Floor
+(Notebook 03) ueber eine Schwellenwert-Optimierung verbessert werden
+(vorgemerkt fuer spaetere Vertiefung, z.B. AP 3.6).
+
+**Warum GaussianNB im Regressionsvergleich ("continuous") fehlt:**
+GaussianNB ist ein Klassifikationsverfahren (schaetzt P(Klasse|Merkmale)
+ueber Normalverteilungsannahmen je Klasse) und hat kein direktes
+Aequivalent fuer kontinuierliche Zielgroessen-Vorhersage (Regression) -
+daher bewusst nicht in MODELLE_KONTINUIERLICH registriert, nicht durch
+einen Schwellenwert-Effekt bedingt.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

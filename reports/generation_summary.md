@@ -548,6 +548,70 @@ Weiteres iteratives Nachjustieren wuerde die Grenze zu echtem Tuning
 ueberschreiten - bewusst hier gestoppt, verbleibende Optimierung bleibt
 AP 3.6 vorbehalten.
 
+### Fairness-Korrektur: Skalierung kategorialer Merkmale
+
+Vor der Ergebnisanalyse festgestellt: kategoriale Dummy-Spalten
+(wandtyp_einwandig, mechanismus_Vakuum) wurden nicht durch StandardScaler
+skaliert (Std 0.27-0.45), waehrend alle numerischen Merkmale auf Std≈1.0
+gebracht wurden. Betrifft distanz-/regularisierungsempfindliche Modelle
+(kNN, SVM, MLP, LogReg/Ridge) - implizite Untergewichtung kategorialer
+Merkmale. Korrigiert: kategoriale Spalten ebenfalls durch StandardScaler
+geleitet. Ergebnis: kaum Einfluss auf die Top-Werte (GaussianNB blieb
+Spitzenreiter), aber notwendig fuer methodische Fairness des Vergleichs.
+
+### Root-Cause-Fix: kontinuierliche Zielgroesse unvollstaendig konstruiert
+
+Erste Ergebnisanalyse zeigte eine grosse Ueberraschung: bestes
+f1_rueckuebersetzt bei "continuous" lag bei nur 0.222 - schlechter als
+die Zufalls-Baseline (0.343). Diagnose (Notebook 05, Zelle 11): der
+Sicherheitsabstand (Notebook 03, Zelle 16) erfasste nur 4 der 9
+NIO-Kriterien (Wandstaerke, Ovalitaet, Aussendurchmesser, Wellhoehe) -
+die 5 binaeren Kriterien (Bindenaehte, Blasenbildung, Risse,
+Oberflaechenfehler, Delamination) fehlten komplett in der kontinuierlichen
+Groesse. Konsistenz mit dem binaeren io_nio-Label lag dadurch nur bei
+91.7% (58 abweichende Zeilen, 48.3% davon durch oberflaechenfehler
+verursacht - haeufigstes der fehlenden Kriterien).
+
+**Fix:** binaere Kriterien wirken als harter Strafterm - trifft eines zu,
+wird der Sicherheitsabstand auf einen stark negativen Wert (-1.0) gesetzt,
+unabhaengig vom Wert der 4 kontinuierlichen Kriterien. Ergebnis: Konsistenz
+auf 99.7% verbessert (identisch zur bereits akzeptierten Imputations-
+Restungenauigkeit bei der OD-Komponente, keine neue Fehlerquelle mehr).
+**Nach dem Fix: bestes f1_rueckuebersetzt bei continuous sprang von 0.222
+auf 0.384** - von "schlechter als Zufall" zu "nahe am Bayes-Floor".
+Bestaetigt: die vorherige schwache Performance war ein
+Konstruktionsfehler der Zielgroesse, keine echte Eigenschaft der Daten.
+
+### Ergebnisueberblick nach allen Korrekturen (104/104 Kombinationen)
+
+| Zielgroesse | Bestes Modell (Feature-Set) | F1 (bzw. Rueckfall-F1) |
+|---|---|---|
+| binary | GaussianNB (original_no_kategorial) | 0.423 |
+| multilabel | GaussianNB (original) | 0.413 |
+| continuous | MLP (residual) | 0.384 |
+
+Alle drei liegen nahe, aber unterhalb des Bayes-Floors (0.447) - konsistentes,
+plausibles Gesamtbild. **Wichtige Ueberraschung:** GaussianNB (urspruenglich
+als "ungeeignet" erwarteter Negativ-Beleg, da Unabhaengigkeitsannahme
+zwischen stark korrelierten Merkmalen verletzt) gewinnt deutlich bei
+binaer/multilabel, statistisch abgesichert (Abstand zum Zweitplatzierten
+LightGBM: 0.204, kombinierte Std beider Modelle: 0.086 - Abstand >2x
+combinierte Streuung, robuster Befund ueber alle 5 CV-Folds).
+Interpretation: bei kleiner, stark verrauschter Datenmenge (n=560,
+92.7% der Faelle im "unsicheren Bereich" laut Bayes-Analyse) kann ein
+einfaches, wenig komplexes Modell komplexere Modelle schlagen, da es
+weniger Kapazitaet hat, Rauschen mitzulernen. Muss als eigener,
+gegenueber der urspruenglichen Erwartung korrigierter Befund in der
+Studie dokumentiert werden.
+
+Auffaellig zusaetzlich: original_no_kategorial schneidet bei binaer/
+continuous oft gleich gut oder besser ab als Sets mit kategorialen
+Merkmalen - konsistent mit dem fruehen Cramer's-V-Befund (wandtyp/
+kalibriermechanismus kaum eigenstaendiger Effekt auf io_nio).
+
+Naechster Schritt: Grafik 2 (Effekt Feature-Set), Grafik 3 (Effekt
+Modelltyp), Grafik 4 (Train-CV-Gap vs. Validierungs-F1).
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
