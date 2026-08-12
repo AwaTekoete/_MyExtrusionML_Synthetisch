@@ -675,6 +675,82 @@ Naechster Schritt: Sane-Default-Kalibrierungszyklus Iteration 2
 (class_weight="balanced" fuer Modelle mit Klassenungleichgewichts-
 Problem), erneute Messung, Vorher-Nachher-Vergleich.
 
+### Sane-Default-Kalibrierungszyklus Iteration 2: Klassenungleichgewicht
+
+Grafiken 1-4 (Iteration 1) zeigten ein systematisches Problem: SVC und
+LogisticRegression kollabierten bei binaerer/Multi-Label-Zielgroesse auf
+reine Mehrheitsklassen-Vorhersage (F1=0.000) - bedingt durch das
+Klassenungleichgewicht (26% NIO) ohne Klassengewichtung in den
+Standard-Hyperparametern.
+
+**Massnahme (Sane-Default, kein Tuning):** class_weight="balanced" (bzw.
+scale_pos_weight bei XGBoost, berechnet aus dem tatsaechlichen Trainings-
+Klassenverhaeltnis: 2.84) fuer alle Modelle ergaenzt, die den Parameter
+unterstuetzen. MLP und GaussianNB/kNN bewusst unveraendert gelassen
+(kein natives class_weight in sklearn verfuegbar - Resampling-Ansatz
+haette die Grenze zu Tuning ueberschritten). Iteration 2 umfasste 72
+Kombinationen (binaer + multilabel, continuous unveraendert da
+Klassengewichtung fuer Regression nicht anwendbar).
+
+**Vorher-Nachher-Ergebnis (Zelle 19):** SVC/LogisticRegression massiv
+verbessert - binaer +0.35 bis +0.41 F1, multilabel sogar +0.40 bis +0.43
+F1 (von komplettem Versagen zu Spitzengruppe). Auch baumbasierte Modelle
+(bereits vorher funktionsfaehig) zeigten spuerbare Verbesserung
+(+0.11 bis +0.34) - class_weight verbesserte generell die Recall/
+Precision-Balance, nicht nur das Extremfall-Versagen.
+
+**Wichtige Neueinordnung:** GaussianNB (unveraendert, kein class_weight)
+ist nach dieser Korrektur NICHT mehr der alleinige Spitzenreiter -
+SVC/LogisticRegression liegen nun in vergleichbarer Groessenordnung
+(binaer: GaussianNB 0.423 vs. SVC ~0.41; multilabel: SVC 0.425 vor
+LogisticRegression 0.425 vor GaussianNB 0.413). Ein wesentlicher Teil
+des urspruenglichen GaussianNB-Vorsprungs (Notebook 05, erste
+Ergebnisanalyse) lag an einem behebbaren Konfigurationsmangel der
+Konkurrenzmodelle, nicht ausschliesslich an methodischer Eignung von
+Naive Bayes fuer dieses Problem - wichtige Selbstkorrektur einer
+vorschnellen Interpretation.
+
+### Finale konsolidierte Ergebnisse (104 Kombinationen)
+
+Finale Tabelle (reports/tables/05_ablation_results_final.csv) kombiniert:
+binaer/multilabel aus Iteration 2 (v2_class_weight_balanced), continuous
+aus Iteration 1 (v1_original_hyperparameter) - Spalte
+kalibrierungs_version dokumentiert Herkunft je Zeile. Grafiken 1-4 mit
+_final-Suffix erneut erzeugt.
+
+**Finale Top-Ergebnisse:**
+
+| Zielgroesse | Bestes Modell (Feature-Set) | F1 |
+|---|---|---|
+| binary | GaussianNB (original_no_kategorial) | 0.423 |
+| continuous | MLP (residual) | 0.384 |
+| multilabel | SVC (original_no_kategorial) | 0.425 |
+
+**Feature-Set-Effekt (final, Grafik 2b):** weiterhin kein systematischer
+Gewinner - Unterschiede maximal ~0.03 zwischen bestem/schlechtestem
+Median je Zielgroesse. original_no_kategorial erweist sich als robuster
+Standardkandidat (nie schlechtestes Set, geringste Dimensionalitaet).
+
+**Modelltyp-Effekt (final, Grafik 3):** klare Trennung zwischen Modellen
+MIT class_weight-Unterstuetzung (jetzt Spitzengruppe, eng beieinander)
+und OHNE (kNN, MLP - bleiben klar abgeschlagen, einzige verbliebene
+Schwachpunkte nach der Kalibrierung).
+
+**Overfitting-Diagnose (final, Grafik 4/4b mit einheitlicher Skala):**
+GaussianNB/LogisticRegression/SVC liegen konsequent im Idealbereich
+(hohe Guete, minimaler Train-CV-Gap) - "billig gut". Boosting-Modelle
+erreichen aehnliche/niedrigere Guete bei deutlich hoeherem Gap - "teuer
+gut", weniger vertrauenswuerdig fuer echte Generalisierung. Wichtiges
+Zusatzargument fuer einfache Modelle als Champion-Kandidaten, nicht nur
+wegen der F1-Zahl sondern wegen nachgewiesener Robustheit. Einheitliche
+Achsenskala (Grafik 4b) zeigte zusaetzlich: bei continuous ist die
+Modell/Overfitting-Beziehung weniger klar geclustert als bei den beiden
+Klassifikationsvarianten - kNN/SVR ueber die ganze Gap-Breite verteilt,
+erreichen dabei nie Top-Werte.
+
+Naechster Schritt: konsolidierte Zusammenfassung/Champion-Diskussion,
+danach Uebergang zu AP 3.6 (systematisches Hyperparameter-Tuning).
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]

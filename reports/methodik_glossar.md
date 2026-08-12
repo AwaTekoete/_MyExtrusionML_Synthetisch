@@ -887,5 +887,55 @@ nutzt eine erweiterte Farbpalette statt der 3 Store44-Kernfarben.
 
 ---
 
+## Sane-Default-Kalibrierungszyklus (Konzept, verallgemeinert)
+
+**Definition:** Ein strukturiertes Vorgehen, um Modell-Standardwerte
+sinnvoll an die konkrete Datenlage anzupassen, OHNE in systematisches
+Hyperparameter-Tuning zu wechseln:
+1. Baseline-Defaults nach bestem Wissen festlegen
+2. Messen (vollstaendiger Modellvergleich)
+3. Analysieren, systematische Schwaechen identifizieren (nicht einzelne
+   Zufallsausreisser, sondern wiederkehrende Muster)
+4. Neue, einzeln BEGRUENDETE Sane-Defaults ableiten (aus dem beobachteten
+   Muster, nicht durch Ausprobieren mehrerer Werte)
+5. Erneut messen, Wirksamkeit explizit im Vorher-Nachher-Vergleich
+   bestaetigen (nicht nur "sieht besser aus")
+6. Dokumentieren als abgeschlossenen Kalibrierungszyklus
+
+**Abgrenzung zu Tuning:** Jede Korrektur ist eine einzelne, klar
+begruendbare Antwort auf ein beobachtetes Fehlermuster (z.B. Overfitting-
+Indikator, Klassenungleichgewichts-Versagen) - keine Suche ueber mehrere
+Kandidatenwerte je Parameter. Sobald eine Korrektur mehrfach iterativ
+nachjustiert werden muesste, um "besser zu werden", ist die Grenze zu
+Tuning ueberschritten.
+
+**Projektbezug:** Zwei Iterationen in Notebook 05 durchlaufen: Iteration 1
+(Baumtiefe/Ensemble-Kapazitaet gegen Overfitting), Iteration 2
+(class_weight gegen Klassenungleichgewichts-Versagen). Beide mit
+expliziter Vorher-Nachher-Messung dokumentiert, klar getrennt von AP 3.6
+(systematisches Tuning).
+
+---
+
+## Selbstkorrektur: vorschnelle Interpretation durch fehlende Kontrolle
+
+**Wichtige methodische Lehre:** Der erste Befund "GaussianNB gewinnt
+trotz verletzter Unabhaengigkeitsannahme, weil einfache Modelle bei viel
+Rauschen robuster sind" war eine plausible, aber VORSCHNELLE Erklaerung -
+sie beruecksichtigte nicht, dass mehrere Konkurrenzmodelle schlicht
+fehlkonfiguriert waren (Klassenungleichgewicht nicht behandelt). Erst
+nach der Sane-Default-Korrektur und erneuter Messung zeigte sich: der
+Vorsprung war GROESSTENTEILS ein Artefakt der Konkurrenzschwaeche, nicht
+ausschliesslich eine besondere Eignung von Naive Bayes.
+
+**Verallgemeinerbare Lehre:** Ein Modellvergleich ist nur so aussagekraeftig
+wie die Fairness der Ausgangsbedingungen aller verglichenen Modelle. Bevor
+eine Erklaerung fuer "warum gewinnt Modell X" formuliert wird, sollte
+geprueft werden, ob alle Konkurrenten unter vergleichbar sinnvollen
+Bedingungen antraten - sonst wird ein Konfigurationsartefakt faelschlich
+als methodischer Befund interpretiert.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
