@@ -612,6 +612,69 @@ kalibriermechanismus kaum eigenstaendiger Effekt auf io_nio).
 Naechster Schritt: Grafik 2 (Effekt Feature-Set), Grafik 3 (Effekt
 Modelltyp), Grafik 4 (Train-CV-Gap vs. Validierungs-F1).
 
+### Ergebnisanalyse: Grafiken 1-4 (Notebook 05, Zellen 13-16)
+
+**Grafik 1 (F1-Vergleich je Modell, bestes Feature-Set):** bestaetigt
+den Gesamtueberblick aus Zelle 8 - GaussianNB fuehrt bei binaer (0.423)
+und multilabel (0.413), MLP bei continuous (0.384). Alle drei nahe, aber
+unterhalb des Bayes-Floors (0.447).
+
+**Grafik 2 (Effekt Feature-Set, Boxplot gepoolt ueber Modelle):** KEIN
+Feature-Set schneidet systematisch besser ab als die anderen - Mediane
+liegen bei allen drei Zielgroessen-Varianten nah beieinander. Bei binaer
+zeigen original/residual breite Boxen mit Ausreissern nach oben
+(GaussianNB), original_no_kategorial/combined schmalere Boxen ohne
+Spitzenmodell. Bei continuous liegen alle vier eng um/knapp ueber der
+Zufalls-Baseline. Bei multilabel liegen alle vier Mediane sehr niedrig,
+mit durchgaengigem GaussianNB-Ausreisser nach oben unabhaengig vom
+Feature-Set. Schlussfolgerung: Modellwahl dominiert deutlich staerker
+als Feature-Set-Wahl - relativiert den DN-Residualisierungsaufwand
+nochmals empirisch (kein Feature-Set-Sieger identifizierbar).
+
+**Wichtige Klarstellung zur Boxplot-Interpretation:** die Boxplots zeigen
+den TYPISCHEN (Median) von 9 Modellen, nicht die Bestleistung. Mehrere
+schwache Modelle (v.a. SVC, MLP mit F1=0.000 bei binaer - sagen
+durchgaengig nur die Mehrheitsklasse IO vorher) ziehen den Median unter
+die Zufalls-Baseline, obwohl das beste Modell (GaussianNB) bereits
+darueber liegt. Kein Widerspruch, sondern Hinweis auf ein separates
+Problem: mehrere Modelle sind bei Klassenungleichgewicht (26% NIO) mit
+Standard-Konfiguration nicht funktionsfaehig.
+
+**Grafik 3 (Effekt Modelltyp, Boxplot gepoolt ueber Feature-Sets) +
+Spannweiten-Tabelle (max-min je Modell):** MLP durchgaengig am
+empfindlichsten gegenueber Feature-Set-Wahl (Spannweite binaer 0.295,
+multilabel 0.190) - typisch fuer neuronale Netze. GaussianNB zeigt
+gegensaetzliches Bild: bei binaer noch spuerbar schwankend (0.131),
+bei multilabel praktisch feature-set-unabhaengig konstant (0.002) -
+zusaetzliches Qualitaetsmerkmal (Robustheit) neben reiner F1-Hoehe.
+LogisticRegression/SVC zeigen kleinste Spannweiten, aber "truegerische
+Robustheit" (durchgaengig schlecht, nicht durchgaengig gut).
+
+**Grafik 4 (Train-CV-Gap vs. Validierungs-F1, Overfitting-Diagnose):**
+GaussianNB liegt bei binaer/multilabel konsequent im Idealbereich (hohe
+Guete, minimaler Gap) - zusaetzliche Bestaetigung als vertrauenswuerdiger
+Kandidat, nicht nur bestes F1 sondern auch am wenigsten Overfitting-
+verdaechtig. Baumbasierte Modelle liegen in einem moderaten Band
+(Gap 0.15-0.55 bei binaer) - Kalibrierung aus vorherigem Schritt zeigt
+Wirkung, aber Trade-off bleibt sichtbar. MLP zeigt inkonsistentes
+Verhalten (mal nahe Idealbereich, mal komplett bei F1≈0).
+
+**Store44-Farbschema-Ausnahme (dokumentiert):** fuer Grafik 4 (9
+gleichrangige, individuell zu unterscheidende Modelltypen) wurde bewusst
+von der 3-Farben-Konvention abgewichen - eine erweiterte, aber weiterhin
+dezente Palette macht die Modelle eindeutig unterscheidbar. Mit 3 Kern-
+Akzentfarben waere bei 9 Kategorien zwangslaeufig Mehrfachbelegung und
+Bedeutungsverlust entstanden. Fuer Praesentation/finale Dokumentation
+gesondert zu vermerken.
+
+Alle vier Grafiken UND die zugrunde liegenden Daten als CSV gespeichert
+(reports/tables/05_ablation_*.csv) - ermoeglicht spaetere rechnerische
+Nachanalyse ohne Grafik-Neuerstellung.
+
+Naechster Schritt: Sane-Default-Kalibrierungszyklus Iteration 2
+(class_weight="balanced" fuer Modelle mit Klassenungleichgewichts-
+Problem), erneute Messung, Vorher-Nachher-Vergleich.
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]

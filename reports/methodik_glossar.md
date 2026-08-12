@@ -831,5 +831,61 @@ einen Schwellenwert-Effekt bedingt.
 
 ---
 
+## GaussianNB (Naive Bayes) - mathematisches Grundprinzip
+
+**Definition:** Klassifikationsverfahren auf Basis des Satzes von Bayes:
+P(Klasse|X) proportional zu P(X|Klasse)*P(Klasse). Die "naive" Annahme:
+alle Merkmale werden als UNABHAENGIG voneinander behandelt, wodurch sich
+die gemeinsame Wahrscheinlichkeit P(X|Klasse) als Produkt der
+Einzelwahrscheinlichkeiten je Merkmal berechnen laesst - macht das
+Verfahren rechnerisch trivial (kein Optimierungsverfahren, keine
+Iteration). "Gaussian": jedes Merkmal wird innerhalb jeder Klasse als
+normalverteilt angenommen, geschaetzt werden nur Mittelwert und Varianz
+je Merkmal und Klasse (bei 10 Merkmalen, 2 Klassen: 40 Parameter
+gesamt).
+
+**Warum GaussianNB trotz verletzter Unabhaengigkeitsannahme gut
+funktionieren kann:** Bias-Variance-Tradeoff bei kleiner, stark
+verrauschter Datenmenge - ein Modell mit sehr geringer Kapazitaet (wenige
+Parameter) hat entsprechend geringe Varianz und kann kaum Rauschstrukturen
+mitlernen. Bei einem Bayes-Floor, der zeigt, dass der Grossteil der Faelle
+strukturell unsicher ist (92.7% im "unsicheren Bereich"), gewinnt ein
+einfaches, robustes Modell gegen komplexere Modelle, die trotz
+Regularisierung noch Rauschen aufgreifen. Bekanntes Phaenomen: Naive
+Bayes ist fuer reine Klassifikationsentscheidungen oft robuster als der
+Name/die vereinfachte Annahme vermuten laesst, solange die
+Randverteilungen je Merkmal zwischen den Klassen noch unterscheidbar
+sind - auch wenn die Korrelationsstruktur zwischen Merkmalen ignoriert
+wird.
+
+**Projektbezug:** GaussianNB gewinnt bei binaerer und Multi-Label-
+Zielgroesse trotz hoher, nachgewiesener Korrelation zwischen den
+Prozessparametern (Notebook 03). Mit Abstand schnellste Trainingszeit
+aller 9 Modelle (~0.0006s), liegt zudem im Idealbereich der Overfitting-
+Diagnose (hohe Guete, minimaler Train-CV-Gap).
+
+---
+
+## Store44-Farbschema: Grenzen bei vielen gleichrangigen Kategorien
+
+**Konzept:** Das Store44-Farbschema definiert bewusst nur 3
+bedeutungstragende Akzentfarben (Gold=wichtigste Zahl, Blau=Vergleichswert,
+Gruen=Champion/Loesung) - funktioniert gut fuer 2-3 Kategorien, fuehrt
+aber bei mehr gleichrangigen, individuell zu unterscheidenden Kategorien
+(hier: 9 Modelltypen) zwangslaeufig zu Mehrfachbelegung derselben Farbe
+und damit Verlust der Unterscheidbarkeit.
+
+**Vorgehen bei begruendeter Ausnahme:** wenn eine Visualisierung mehr
+eindeutig zu unterscheidende Kategorien braucht, als das Kernschema
+hergibt, ist eine erweiterte, aber weiterhin dezente Palette
+gerechtfertigt - MUSS aber explizit als bewusste Abweichung dokumentiert
+werden (im Code-Kommentar und in der finalen Projektdokumentation), um
+nicht wie eine unbeabsichtigte Inkonsistenz zu wirken.
+
+**Projektbezug:** Notebook 05, Grafik 4 (Overfitting-Diagnose, 9 Modelle)
+nutzt eine erweiterte Farbpalette statt der 3 Store44-Kernfarben.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
