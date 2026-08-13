@@ -1,0 +1,10 @@
+kriterium,bayes_f1_optimal,bayes_schwelle
+y_nio_wandstaerke,0.811,0.38
+y_nio_ovalitaet,0.172,0.08
+y_nio_od,0.126,0.06
+y_nio_wellhoehe,0.208,0.1
+y_nio_bindenaehte,0.031,0.02
+y_nio_blasenbildung,0.096,0.04
+y_nio_risse,0.095,0.06
+y_nio_oberflaechenfehler,0.334,0.16
+y_nio_delamination,0.115,0.06

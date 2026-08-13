@@ -933,4 +933,101 @@ Gespeichert: reports/figures/06_grafik1_mit_tuning_overlay.png,
 
 ---
 
+## Notebook 07 – Evaluation Modell A (AP 3.7): Konzeptioneller Neuansatz
+## + Einzelkriterien-Diagnosegueete
+
+### Anlass: kritische Neubewertung des Geschaeftsprozessverstaendnisses
+
+Vor Beginn dieses Notebooks wurde das zugrunde liegende Prozessverstaendnis
+praezisiert (Extruder GmbH als Maschinenhersteller: Auftragseingang ->
+konzeptionelle Freigabe -> Bau -> Inbetriebnahme mit iterativem Experten-
+Tuning -> Auslieferung mit IO-Bericht). Ergebnis: die urspruengliche Rolle
+von Modell A ("Filter fuer historische Massendaten vor Modell-B-Training")
+passt nicht mehr zum praezisierten Geschaeftsmodell - da zu jeder
+ausgelieferten Maschine bereits ein IO-Bericht vorliegt, ist die
+Information "war die Einstellung gut" bereits bekannt, kein ML-Bedarf.
+
+**Neue, praezisere Rolle fuer Modell A:** Unterstuetzung des iterativen
+Korrekturschritts waehrend der Inbetriebnahme - konkret ueber die
+bereits trainierte Multi-Label-Variante (WELCHES Kriterium ist verletzt,
+z.B. "Ovalitaet") kombiniert mit SHAP (WELCHER Parameter traegt zur
+Fehleinschaetzung bei, als Korrekturrichtungs-Hinweis). Modell B bleibt
+fuer den ersten Startpunkt-Vorschlag zustaendig. Explizit dokumentiertes
+Kernprinzip der Studie: eine ehrliche "machbar/nicht machbar"-Aussage ist
+der eigentliche Wert, nicht eine moeglichst hohe Kennzahl.
+
+### Einzelkriterien-Diagnosegueete (alle 3 Shortlist-Kandidaten)
+
+Kritische Korrektur waehrend der Umsetzung: urspruenglicher Ansatz nutzte
+nur EIN Modell (GaussianNB) mit einer nicht begruendeten Konfiguration -
+korrigiert auf alle 3 Shortlist-Kandidaten (GaussianNB, LogisticRegression,
+SVC) mit den bereits etablierten Sane-Default-Konfigurationen aus
+Notebook 05 (NICHT die in Notebook 06 fuer multilabel verworfenen,
+instabilen getunten Werte).
+
+**Ergebnis (F1 je Einzelkriterium, bestes Modell):**
+
+| Kriterium | Bestes F1 | Positivrate |
+|---|---|---|
+| y_nio_ovalitaet | 0.220 (LogReg) | 7.71% |
+| y_nio_oberflaechenfehler | 0.157 (LogReg) | 6.14% |
+| y_nio_wellhoehe | 0.151 (LogReg) | 4.14% |
+| y_nio_wandstaerke | 0.145 (GaussianNB) | 3.71% |
+| y_nio_od | 0.116 (LogReg) | 3.71% |
+| y_nio_bindenaehte | 0.200 (SVC) | 0.71% |
+| y_nio_delamination | 0.100 (SVC) | 0.86% |
+| y_nio_blasenbildung | 0.071 | 2.00% |
+| y_nio_risse | 0.076 (LogReg) | 1.14% |
+
+### Theoretischer Bayes-Floor je Einzelkriterium (Monte-Carlo, wie Notebook 03)
+
+Wichtige Ergaenzung: erreichtes F1 allein ist nicht interpretierbar ohne
+die jeweilige Obergrenze - fuer die kombinierte io_nio-Zielgroesse war
+diese bekannt (0.447), fuer Einzelkriterien bisher nicht separat
+berechnet. Nachgeholt per Monte-Carlo-Simulation (2000 Wiederholungen,
+analog Notebook 03 Zelle 14).
+
+| Kriterium | Bayes-Floor | Erreichtes F1 | Ausschoepfung |
+|---|---|---|---|
+| **y_nio_wandstaerke** | **0.811** | 0.145 | ~18% - grosse ungenutzte Luecke |
+| y_nio_oberflaechenfehler | 0.334 | 0.157 | ~47% |
+| y_nio_wellhoehe | 0.208 | 0.151 | ~73% - nahe am Limit |
+| y_nio_ovalitaet | 0.172 | 0.220 | uebertrifft den Floor (siehe unten) |
+| y_nio_delamination | 0.115 | 0.100 | ~87% - nahe am Limit |
+| y_nio_od | 0.126 | 0.116 | ~92% - nahe am Limit |
+| y_nio_blasenbildung | 0.096 | 0.071 | ~74% - nahe am Limit |
+| y_nio_risse | 0.095 | 0.076 | ~80% - nahe am Limit |
+| y_nio_bindenaehte | 0.031 | 0.200 | **weit ueber dem Floor - statistisches Artefakt** |
+
+**Zwei wichtige Einzelbefunde:**
+- **y_nio_wandstaerke** ist theoretisch stark vorhersagbar (klare
+  physikalische Formel: wandstaerke_ist = duesenspalt/die_swell_real),
+  wird aber von den Modellen bei weitem nicht ausgeschoepft - konkreter,
+  lohnender Ansatzpunkt fuer kuenftige Modellverbesserung
+- **y_nio_bindenaehte und y_nio_ovalitaet** zeigen erreichtes F1 ueber
+  dem berechneten Bayes-Floor - bei extrem wenigen positiven Faellen
+  (bindenaehte: ~5 Faelle gesamt, ~1 pro Fold) ist das ein Symptom
+  statistischer Unzuverlaessigkeit (einzelne zufaellig richtige
+  Treffer verzerren F1 stark), kein echtes Signal
+
+### Zentrale, ehrliche Gesamtaussage (Kernprinzip Machbarkeitsstudie)
+
+Mit der aktuellen synthetischen Datenmenge (n=700) ist eine granulare
+Einzelkriterien-Diagnose fuer KEINES der 9 Kriterien robust praxistauglich -
+auch das beste Kriterium (Ovalitaet) erreicht nur F1≈0.22. Differenziertes
+Bild statt Pauschalurteil: Wandstaerke zeigt grosses ungenutztes
+Potenzial (Modellverbesserung lohnend), mehrere Kriterien liegen nahe an
+ihrer jeweiligen Obergrenze (kein Datenproblem, sondern strukturelles
+Limit), seltene Kriterien sind grundsaetzlich nicht robust diagnostizierbar
+mit dieser Datenmenge - unabhaengig vom Modell.
+
+Gespeichert: reports/tables/07_einzelkriterien_diagnose_guete.csv,
+reports/tables/07_bayes_floor_je_kriterium.csv
+
+Naechster Schritt: Konsequenzen fuer SHAP-Konzept (Notebook 07
+Fortsetzung) und Modell-B-Planung basierend auf diesen ehrlichen
+Machbarkeits-Erkenntnissen.
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]

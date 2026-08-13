@@ -1019,5 +1019,59 @@ eigene Tuning-Ergebnis.
 
 ---
 
+## Einzelkriterien-Bayes-Floor bei Multi-Label-Zielgroessen
+
+**Konzept:** Bei einer Multi-Label-Zielgroesse (mehrere binaere
+Einzelkriterien) reicht ein einzelner, fuer die kombinierte Zielgroesse
+berechneter Bayes-Floor nicht aus, um die Guete jedes Einzelkriteriums
+einzuordnen - jedes Kriterium hat seine eigene, potenziell sehr
+unterschiedliche theoretische Obergrenze (abhaengig von der jeweils
+zugrunde liegenden Rauschstruktur und Positivrate). Der Floor muss daher
+je Einzelkriterium separat per Monte-Carlo-Simulation berechnet werden.
+
+**Wichtige Diagnosefunktion:** Erreichtes Modell-F1 wird gegen den
+jeweiligen Einzelkriterien-Floor gesetzt, nicht gegen einen pauschalen
+Wert - ermoeglicht eine differenzierte Aussage (welches Kriterium hat
+ungenutztes Potenzial, welches ist bereits nahe am Limit).
+
+**Warnsignal - erreichtes F1 UEBER dem berechneten Bayes-Floor:** da der
+Bayes-Floor das theoretische Maximum darstellt, ist ein empirisch
+gemessenes F1 darueber unmoeglich im eigentlichen Sinne - ein solcher
+Befund deutet auf statistische Unzuverlaessigkeit hin, typischerweise bei
+extrem wenigen positiven Testfaellen (einzelne zufaellig richtige
+Treffer verzerren die Metrik stark), nicht auf ein echtes Signal.
+
+**Projektbezug:** Notebook 07, 9 Einzelkriterien der Multi-Label-
+Zielgroesse (Modell A). y_nio_wandstaerke zeigt grosse ungenutzte Luecke
+(Floor 0.811, erreicht 0.145); y_nio_bindenaehte zeigt erreichtes F1
+ueber dem Floor (0.200 vs. 0.031) - Artefakt bei nur ~5 positiven Faellen
+gesamt.
+
+---
+
+## Prozessverstaendnis vor Modellarchitektur (Lehre aus Notebook 07)
+
+**Konzept:** Eine technisch sauber umgesetzte Modellarchitektur kann
+trotzdem am eigentlichen Geschaeftsproblem vorbeigehen, wenn das
+zugrunde liegende Prozessverstaendnis unvollstaendig oder unpraezise
+war. Kritisches Hinterfragen des Geschaeftsprozesses (wer trifft wann
+welche Entscheidung, welche Information liegt bereits vor, welche fehlt
+tatsaechlich) sollte auch nach bereits geleisteter technischer Arbeit
+jederzeit erfolgen koennen - eine spaete Neubewertung ist kein
+Rueckschritt, sondern verhindert, dass technisch korrekte, aber am
+eigentlichen Bedarf vorbeigehende Ergebnisse als "fertig" gelten.
+
+**Projektbezug:** Modell A wurde ueber mehrere Notebooks (02-06)
+technisch vollstaendig und korrekt umgesetzt. Erst eine spaete,
+praezisierende Rueckfrage zum realen Geschaeftsprozess (Extruder GmbH
+als Maschinenhersteller, Ein-Auftrag-eine-Inbetriebnahme statt
+laufender Serienproduktion) deckte auf, dass die urspruenglich
+angenommene Rolle von Modell A (Filter fuer historische Massendaten)
+nicht zum praezisierten Prozess passt. Die bereits geleistete Arbeit
+blieb dabei vollstaendig nutzbar - nur ihre Zweckbeschreibung musste
+neu gefasst werden (Diagnose-/Korrekturassistent statt Filter).
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
