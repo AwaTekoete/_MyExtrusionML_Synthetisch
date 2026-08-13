@@ -1073,5 +1073,71 @@ neu gefasst werden (Diagnose-/Korrekturassistent statt Filter).
 
 ---
 
+## SHAP (SHapley Additive exPlanations)
+
+**Definition:** Erklaerbarkeits-Verfahren, das fuer jede einzelne
+Vorhersage berechnet, wie stark und in welche Richtung jedes einzelne
+Merkmal zur konkreten Vorhersage beigetragen hat (basierend auf
+Shapley-Werten aus der Spieltheorie - fairer Beitrag jedes "Spielers"
+zu einem gemeinsamen Ergebnis). Zwei Ebenen: GLOBAL (Summary-Plot: ueber
+alle Faelle gemittelte Wichtigkeit + Richtung je Merkmal) und LOKAL
+(Waterfall-Plot: Erklaerung eines einzelnen, konkreten Falls).
+
+**LinearExplainer vs. KernelExplainer:** bei linearen Modellen
+(LogisticRegression, Ridge) koennen Shapley-Werte EXAKT und schnell aus
+den Modellkoeffizienten berechnet werden (LinearExplainer). Bei nicht-
+linearen/Black-Box-Modellen (SVM, Baummodelle ohne TreeExplainer, MLP)
+muessen sie durch Sampling APPROXIMIERT werden (KernelExplainer,
+deutlich langsamer). TreeExplainer bietet fuer Baummodelle ebenfalls
+exakte, schnelle Berechnung.
+
+**Projektbezug:** LogisticRegression (binaeres Modell A) mit
+LinearExplainer gewaehlt - schnell, exakt, zusaetzlich gegen Modell-
+koeffizienten plausibilisierbar. Globale Wichtigkeit bestaetigte
+inhaltlich den fruehen Formluft/Vakuum-Root-Cause-Fix (Notebook 02/03).
+
+---
+
+## Store44-Farbschema bei SHAP-Visualisierungen (dritte dokumentierte Ausnahme)
+
+**Konzept:** SHAP nutzt intern eine fachlich codierte Standard-Farbskala
+(typisch Rot/Blau fuer hohen/niedrigen Merkmalswert) sowie eine eigene
+Rendering-Logik, die matplotlib-rcParams nur teilweise beeinflussen -
+Text-Objekte, Tick-Labels und Patches muessen teilweise explizit
+nachbearbeitet werden, um ein konsistentes Farbschema durchzusetzen.
+
+**Vorgehen:** Farbskala kann ueber den cmap-Parameter angepasst werden
+(hier: Store44 Gold/Blau statt SHAP-Standard Rot/Blau), OHNE die
+fachliche Bedeutung (Richtung des Merkmalswerts) zu verlieren. Hintergrund/
+Text/Rahmen erfordern explizite Nachbearbeitung aller Achsen, Patches und
+Text-Objekte einer Figure - reines rcParams-Setzen reicht bei SHAP nicht
+aus (im Unterschied zu Standard-matplotlib-Plots).
+
+**Projektbezug:** Notebook 07, SHAP Summary- und Waterfall-Plots auf
+Store44-Gold/Blau umgestellt.
+
+---
+
+## Alternativen-Abwaegung: Datenanpassung vs. Nutzung vorhandener Staerken
+
+**Konzept:** Wenn ein geplanter Analyseschritt (hier: SHAP auf granularer
+Multi-Label-Ebene) durch schwache zugrunde liegende Modellguete nicht
+sinnvoll durchfuehrbar ist, gibt es grundsaetzlich zwei Reaktionsmoeglich-
+keiten: (a) die Datengrundlage anpassen/verstaerken, bis das gewuenschte
+Ergebnis erreichbar wird, oder (b) auf eine andere, bereits vorhandene
+staerkere Grundlage ausweichen, die denselben methodischen Zweck erfuellt.
+
+**Kriterium fuer die Wahl:** Option (a) ist bei einer Machbarkeitsstudie
+grundsaetzlich zu vermeiden, wenn sie einer nachtraeglichen Anpassung der
+Daten an das gewuenschte Ergebnis gleichkommt - widerspricht dem
+Kernprinzip einer ehrlichen "geht/geht nicht"-Aussage. Option (b) ist
+vorzuziehen, wenn eine methodisch gleichwertige, bereits validierte
+Alternative existiert.
+
+**Projektbezug:** SHAP-Konzeptentscheidung Notebook 07 - Wechsel von
+Multi-Label- auf binaere Zielgroesse statt Datenanpassung.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

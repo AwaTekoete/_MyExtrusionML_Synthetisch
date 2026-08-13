@@ -1028,6 +1028,63 @@ Naechster Schritt: Konsequenzen fuer SHAP-Konzept (Notebook 07
 Fortsetzung) und Modell-B-Planung basierend auf diesen ehrlichen
 Machbarkeits-Erkenntnissen.
 
+### SHAP-Konzeptentscheidung: binaeres Modell A statt Multi-Label
+
+Nach der Einzelkriterien-Diagnose (F1≈0.15-0.22, deutlich unter
+praxistauglichem Niveau) wurden zwei Alternativen fuer den SHAP-Teil
+abgewogen:
+- Alternative A: neuen, staerker kalibrierten Datensatz erzeugen, bis
+  Multi-Label-SHAP aussagekraeftig wird - VERWORFEN, da dies dem
+  Kernprinzip der Studie widersprochen haette (ehrliche Machbarkeits-
+  aussage statt nachtraeglich passend gemachter Daten)
+- **Alternative B (gewaehlt):** SHAP auf dem binaeren Modell A (F1=0.422
+  auf echtem Test-Set, nahe Bayes-Floor 0.447) - nutzt das staerkste,
+  bereits validierte Ergebnis, zeigt konzeptionell erklaerbare ML ohne
+  Datenmanipulation
+
+### Finales SHAP-Modell und Ergebnisse
+
+LogisticRegression (C=1.0, l2, aus Notebook-06-Fold-Mehrheit abgeleitet),
+Feature-Set "original", LinearExplainer (exakt, schnell). Erstmalige
+Verwendung des seit Notebook 05 zurueckgehaltenen echten Test-Sets
+(140 Zeilen) - Test-F1=0.422, konsistent mit CV-Schaetzung (0.423),
+keine Ueberraschung, gute Bestaetigung der Generalisierungsfaehigkeit.
+
+**Globale SHAP-Wichtigkeit (Summary-Plot):** mechanismus_Vakuum und
+kalibrierdruck_mbar mit Abstand wichtigste Merkmale - bestaetigt
+inhaltlich den fruehen Root-Cause-Fix (Formluft/Vakuum-Unterscheidung,
+Notebook 02/03): genau die Variable, die urspruenglich fehlerhaft
+modelliert und aufwendig korrigiert wurde, erweist sich als staerkster
+Qualitaetstreiber. Schneckendrehzahl, Abzugsgeschwindigkeit, Duesenspalt
+folgen (alle DN-korreliert), Kuehlwassertemperatur/MFR unwichtigst
+(konsistent mit Generierungsdesign als "Rauschvariablen").
+
+**Lokale Erklaerung (Waterfall-Plot, Einzelfall):** ein NIO-Testfall
+korrekt vorhergesagt (63.7% NIO-Wahrscheinlichkeit), Hauptrisikofaktoren
+identifiziert (niedrige Schneckendrehzahl, niedriger Duesenspalt). Mit
+Klartext-Aufbereitung ergaenzt (echte statt standardisierte Werte) fuer
+Demo-Verstaendlichkeit.
+
+**Store44-Farbschema-Ausnahme (dritte, dokumentiert):** SHAP-Standard-
+Farbskala (Rot/Blau fuer Merkmalswert hoch/niedrig) auf Store44-Gold/Blau
+umgestellt - technisch aufwendiger als bei normalen matplotlib-Plots,
+da SHAP eigene Rendering-Logik nutzt (rcParams allein unzureichend,
+explizite Nachbearbeitung von Tick-Labels, Patches und Text-Objekten
+noetig).
+
+**Entscheidung gegen zusaetzliches IO-Beispiel:** weitere statische
+Einzelfall-Demos im Notebook wurden bewusst nicht ergaenzt - die
+interaktive Streamlit-Anwendung (fest zugesagtes Feature, AP 3.7/spaeter)
+wird Live-Erklaerungen fuer beliebige Faelle bieten, ueberzeugender als
+zusaetzliche statische Notebook-Plots.
+
+Gespeichert: reports/tables/07_shap_globale_wichtigkeit.csv,
+reports/figures/07_shap_summary_plot.png,
+reports/figures/07_shap_waterfall_beispiel_nio.png
+
+Naechster Schritt: Abschluss-Markdown Notebook 07, AP 3.7 fuer Modell A
+abgeschlossen. Uebergang zu Modell B.
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
