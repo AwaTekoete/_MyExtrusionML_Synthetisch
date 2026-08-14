@@ -1153,6 +1153,39 @@ Fehlschlag.
 Naechster Schritt: X_B/Y_B-Struktur fuer Modell B konkret festlegen,
 DN/Baugroesse explizit als X_B-Merkmal integrieren.
 
+### Finale X_B/Y_B-Struktur fuer Modell B (nach Diskussion festgelegt)
+
+**X_B (Kundenauftrag + feststehende Maschinenkonfiguration, zu Beginn
+von Moment 2 bereits gegeben):**
+- Material (mfr_charge-Analogon)
+- Ziel-Nennweite/DN
+- Wandstaerke-Anforderung (Sollwert)
+- Wandtyp (einwandig/doppelwandig) - Kundenvorgabe, da unterschiedliche
+  Wandtypen unterschiedliche Maschinenkomponenten erfordern (zusaetzlicher
+  Extruderkopf bei doppelwandig), daher Moment-1-Entscheidung, keine
+  Experten-Feinabstimmung in Moment 2
+
+Stueckzahl/Losgroesse bewusst NICHT aufgenommen - beeinflusst hoechstens
+die Wirtschaftlichkeitsentscheidung bei der Maschinenkonzeptwahl (Moment
+1), nicht die eigentlichen Prozesseinstellungen (Moment 2).
+
+**Y_B (Experten-Entscheidung, finale Prozesseinstellungen nach
+Inbetriebnahme-Tuning):**
+- Schneckendrehzahl, Massetemperatur, Duesenspalt, Abzugsgeschwindigkeit,
+  Kalibrierdruck, Kuehlwassertemperatur
+
+Massedurchsatz und Massedruck bewusst NICHT als Y_B aufgenommen - beides
+sind abgeleitete Prozessgroessen (Konsequenzen aus den echten
+Stellgroessen), keine eigenstaendigen Experten-Entscheidungen. mfr_charge
+und wandtyp wurden von X_A nach X_B verschoben (Auftragsvorgaben, keine
+Experten-Stellgroessen) - bleiben in Modell A weiterhin korrekt als
+X_A-Merkmale (sie beeinflussen die Qualitaet real), Verschiebung betrifft
+nur ihre Rolle in Modell B.
+
+Naechster Schritt: Datengenerierung Modell B (Notebook, analog Notebook
+02) - Mini-Physik fuer X_B->Y_B-Beziehung, DN von Anfang an explizit
+integriert (Lehre aus Modell-A-Limitation).
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
