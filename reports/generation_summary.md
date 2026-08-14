@@ -1186,6 +1186,102 @@ Naechster Schritt: Datengenerierung Modell B (Notebook, analog Notebook
 02) - Mini-Physik fuer X_B->Y_B-Beziehung, DN von Anfang an explizit
 integriert (Lehre aus Modell-A-Limitation).
 
+### X_B/Y_B-Struktur, finale Ueberarbeitung nach kritischer Pruefung
+
+Nach weiterer kritischer Durchsprache wurde die X_B/Y_B-Liste nochmals
+korrigiert:
+
+**X_B (final, 7 Merkmale):**
+- Material (MFR)
+- Ziel-Nennweite/DN
+- Wandstaerke-Sollwert
+- Dickentoleranz (neu ergaenzt - kundenspezifisch unterschiedlich eng/weit)
+- Wandtyp (einwandig/doppelwandig)
+- Produktionsgeschwindigkeit/Rohrmeter-pro-Minute-Anforderung (neu
+  ergaenzt - haeufig explizite Kapazitaetsvorgabe des Kunden)
+- Ovalitaets-Anforderung (kundenspezifisch bestaetigt, manche Kunden
+  fordern engere Toleranz als andere)
+
+**Y_B (final, 5 Stellgroessen statt urspruenglich 6):**
+- Schneckendrehzahl, Massetemperatur, Duesenspalt, Kalibrierdruck,
+  Kuehlwassertemperatur
+- **Abzugsgeschwindigkeit ENTFERNT aus Y_B:** kritische Rueckfrage ergab,
+  dass Abzugsgeschwindigkeit bei vorgegebener Produktionsgeschwindigkeit
+  (jetzt X_B) fast direkt abgeleitet ist, keine eigenstaendige freie
+  Experten-Entscheidung mehr - analog zur fruehen Erkenntnis bei
+  Massedurchsatz/Massedruck in Modell A (abgeleitete Groessen, keine
+  Stellgroessen)
+
+### Grundsatzfrage: Ein Modell statt zwei?
+
+Kritische Diskussion, ob ein einzelnes Modell (direkt X_B -> gute
+Einstellung, auf vorab gefilterten Daten trainiert) die Zwei-Modell-
+Architektur (A+B) ersetzen koennte. Ergebnis: technisch moeglich, aber
+zwei Modelle bevorzugt aus drei Gruenden:
+1. Unterschiedliche Trainingssignale/Fehlerarten - Modell B kann Risiko
+   bei neuen, ungewoehnlichen Auftraegen nicht einschaetzen; Modell A
+   prueft unabhaengig die physikalische Plausibilitaet der Einstellung
+   selbst
+2. Erklaerbarkeit - getrennte SHAP-Analysen auf Qualitaetsebene (Modell
+   A: "warum ist diese Einstellung riskant") und Empfehlungsebene
+   (Modell B) sind diagnostisch wertvoller als eine kombinierte Black-Box
+3. Unabhaengige Wartbarkeit - Aenderungen an Qualitaetsnormen erfordern
+   nur Modell-A-Update, Aenderungen am Auftragsspektrum nur Modell-B-
+   Update
+
+**Wichtige methodische Entscheidung:** die Frage, ob Modell A als
+Sicherheitsnetz tatsaechlichen Mehrwert liefert, wird NICHT vorab
+angenommen, sondern bleibt als spaeter empirisch zu pruefende Frage
+offen (in wie vielen Faellen haette Modell A einen schlechten Modell-B-
+Vorschlag korrekt als riskant identifiziert) - konsistent mit dem
+Grundprinzip der Studie (messen statt annehmen).
+
+### Finales Gesamtkonzept: nicht-zirkulaere Funktion von Modell A geklaert
+
+Nach mehreren verworfenen Rollen (Filter fuer historische Daten,
+Diagnose+Korrektur, Vorab-Check auf Modell-B-Vorschlaege als Zirkel-
+schluss) wurde eine tragfaehige, nicht-zirkulaere Doppelfunktion
+identifiziert:
+
+```
+Kundenauftrag (X_B)
+      |
+      v
+  Modell B: schlaegt Einstellung (Y_B) vor
+      |
+      v
+  Modell A: prueft Einstellung -> IO-Wahrscheinlichkeit [Sicherheitsnetz]
+      |
+      v
+  Mitarbeiter testet an echter Maschine -> echtes Ergebnis (IO/NIO)
+      |
+      +-----------------------------+
+      v                             v
+Neues Trainingsbeispiel        Falls IO: auch neues
+fuer Modell A (JEDES            Trainingsbeispiel fuer
+Ergebnis zaehlt)                Modell B [Feedback-Filter]
+```
+
+**Wichtige Klarstellung, die den urspruenglichen Widerspruch aufloest:**
+die "Filter"-Funktion (Modell A entscheidet, welche Faelle als Modell-B-
+Trainingsdaten taugen) ist NICHT grundsaetzlich falsch, sondern war nur
+zeitlich falsch verortet. Am Projektanfang (historische Daten, IO-Bericht
+bereits vorhanden) ergab sie keinen Sinn. Im fortlaufenden Produktivbetrieb
+(neue, zukuenftige Faelle nach Modell-B-Einsatz) ist dieselbe Filter-
+funktion wieder sinnvoll und nicht redundant, weil sie echte, neue,
+bislang ungesehene Ergebnisse filtert.
+
+**Scope-Entscheidung fuer die aktuelle Studie:** der fortlaufende
+Feedback-Kreislauf wird NICHT selbst simuliert (eigenstaendiges, deutlich
+groesseres Folgeprojekt mit Zeitachse) - wird als konzeptioneller
+Ausblick dokumentiert. Aktuelle Studie deckt den statischen Trainings-
+zustand beider Modelle ab.
+
+Naechster Schritt: Datengenerierung Modell B (neues Notebook), Mini-
+Physik fuer X_B->Y_B mit 7 Eingabe- und 5 Ausgabegroessen, realistische
+Mischung aus lernbarem Muster und Experten-Variabilitaet (analog Modell-
+A-Designphilosophie).
+
 ---
 
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
