@@ -1087,4 +1087,72 @@ abgeschlossen. Uebergang zu Modell B.
 
 ---
 
+## Kritische Nachreflexion nach Notebook 07: Funktion von Modell A vs. Modell B
+
+Nach Abschluss von AP 3.4-3.7 wurde die praktische Funktion von Modell A
+im Geschaeftsprozess einer wiederholten, kritischen Pruefung unterzogen -
+mit einem wichtigen, ehrlichen Ergebnis, das vor Beginn von Modell B
+festgehalten wird.
+
+### Gepruefte und verworfene Rollen fuer Modell A
+
+Drei nacheinander vorgeschlagene praktische Rollen fuer Modell A wurden
+jeweils kritisch hinterfragt und verworfen:
+1. "Filter fuer historische Trainingsdaten von Modell B" - hinfaellig,
+   da zu jeder ausgelieferten Maschine bereits ein IO-Bericht vorliegt
+   (die Information liegt bereits vor, kein ML-Bedarf)
+2. "Diagnose+Korrektur-Assistent waehrend der Inbetriebnahme" - hinfaellig,
+   der Experte sieht einen Qualitaetsfehler (z.B. Ovalitaet) direkt am
+   Werkstueck, braucht dafuer kein Vorhersagemodell
+3. "Vorab-Check auf Modell-B-Vorschlaege" - hinfaellig, zirkulaerer
+   Schluss: wenn Modell B bereits gelernt hat, gute Einstellungen
+   vorherzusagen, liefert eine nachgeschaltete Pruefung durch Modell A
+   keine neue Information
+
+### Weitere waehrend der Reflexion aufgedeckte konzeptionelle Erkenntnis
+
+Die grosse Nennweiten-Streuung in den Modell-A-Daten (DN50-DN315) deutet
+vermutlich auf unterschiedliche MASCHINENKONFIGURATIONEN hin (verschiedene
+Extrudergroessen/Korrugatoren je Baugroessenklasse), nicht auf
+Einstellvarianten derselben Maschine - vermischt damit unbeabsichtigt
+"Moment 1" (konzeptionelle Maschinenwahl bei Auftragseingang) und
+"Moment 2" (Prozess-Feineinstellung bei Inbetriebnahme) in einem Modell.
+
+**Entscheidung:** Modell A wird NICHT nachtraeglich ueberarbeitet oder neu
+strukturiert (Datensatz-Vergroesserung sowie nachtraegliche Einteilung in
+erfundene Maschinenklassen beide verworfen - letzteres würde unbegruendete
+Annahmen einfuehren, ersteres loest das eigentliche Struktur-Problem
+nicht). Stattdessen wird dies als dokumentierte LIMITATION festgehalten,
+und als Lehre in die Modell-B-Konzeption uebernommen: Baugroesse/DN wird
+dort von Anfang an explizit als X_B-Merkmal gefuehrt (Kunde gibt
+Durchmesserbereich vor), statt nachtraeglich korrigiert werden zu muessen.
+
+### Finale Funktionszuweisung beider Modelle
+
+| | Modell A | Modell B |
+|---|---|---|
+| Frage | "Ist diese Einstellung gut?" | "Welche Einstellung soll ich waehlen?" |
+| Praxisnutzen heute | Eingeschraenkt (Information oft bereits anderweitig vorhanden) | Hoch (loest das eigentliche Kernproblem) |
+| Wert der Studie | Methodischer Nachweis, technische Infrastruktur, Prozesserkenntnisse | Eigentliches Produkt/Ziel |
+
+**Wert von Modell A fuer die Gesamtstudie (trotz eingeschraenktem
+eigenstaendigem Praxisnutzen):** vollstaendiger methodischer Nachweis
+professioneller ML-Praxis (Root-Cause-Denken, Leakage-Vermeidung, Bayes-
+Grenzen-Berechnung, Sane-Default-Kalibrierung, Nested-CV-Tuning, SHAP);
+inhaltliche Prozesserkenntnisse (SHAP bestaetigt Formluft/Vakuum-
+Mechanismus als staerksten Qualitaetstreiber); wiederverwendbare
+technische Infrastruktur fuer Modell B (Pipeline-Builder, Metrik-
+Funktionen, Bayes-Floor-Methode).
+
+Diese ehrliche Neubewertung ist selbst ein Ergebnis im Sinne einer
+Machbarkeitsstudie: nicht jede technisch saubere Komponente hat
+automatisch eigenstaendigen Praxisnutzen - das explizit zu erkennen und
+zu dokumentieren ist Teil des wissenschaftlichen Vorgehens, kein
+Fehlschlag.
+
+Naechster Schritt: X_B/Y_B-Struktur fuer Modell B konkret festlegen,
+DN/Baugroesse explizit als X_B-Merkmal integrieren.
+
+---
+
 ## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
