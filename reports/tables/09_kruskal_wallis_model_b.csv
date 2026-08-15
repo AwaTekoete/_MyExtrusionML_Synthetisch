@@ -1,0 +1,11 @@
+gruppierung,y_merkmal,h_statistik,p_wert,signifikant
+wandtyp,schneckendrehzahl,4.57,0.03261,True
+wandtyp,massetemperatur,1.77,0.18389,False
+wandtyp,duesenspalt,0.31,0.57554,False
+wandtyp,kalibrierdruck,1.57,0.20998,False
+wandtyp,kuehlwassertemperatur,3.43,0.06405,False
+kalibriermechanismus,schneckendrehzahl,536.85,0.0,True
+kalibriermechanismus,massetemperatur,326.79,0.0,True
+kalibriermechanismus,duesenspalt,785.02,0.0,True
+kalibriermechanismus,kalibrierdruck,830.25,0.0,True
+kalibriermechanismus,kuehlwassertemperatur,1.34,0.24656,False
