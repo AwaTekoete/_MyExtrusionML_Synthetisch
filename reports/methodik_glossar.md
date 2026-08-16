@@ -1234,5 +1234,60 @@ dienen nur als nachtraeglicher, separat gekennzeichneter Abgleich.
 
 ---
 
+## Skewness-Reduktion vs. echte Normalitaet: ein wichtiger Widerspruch
+
+**Konzept:** Eine Transformation (z.B. Yeo-Johnson) kann die Skewness
+(Schiefe-Kennzahl) einer Verteilung deutlich reduzieren, OHNE dass der
+Shapiro-Wilk-Test danach "normalverteilt" anzeigt. Grund: Normalitaet
+haengt von mehr als nur der Asymmetrie ab - auch die Kurtosis (Woelbung)
+und die grundsaetzliche Form der Verteilungsraender spielen eine Rolle.
+Insbesondere KUENSTLICHE HARTE GRENZEN (z.B. durch np.clip() bei
+synthetischen Daten) erzeugen an den Verteilungsraendern horizontale
+"Plateaus", die keine Transformation beheben kann, da es sich nicht um
+Schiefe, sondern um eine strukturelle Begrenzung handelt.
+
+**Diagnosemethode:** Skewness und Shapiro-p getrennt VOR und NACH einer
+Transformation vergleichen (nicht nur eine der beiden Kennzahlen), UND
+zusaetzlich visuell per Q-Q-Plot pruefen, WO im Wertebereich die
+Abweichung von der Normalitaet konzentriert ist (Mitte = Schiefe,
+behebbar; Raender/Plateaus = strukturelle Grenze, nicht behebbar durch
+Transformation).
+
+**Projektbezug:** Notebook 09, Modell B - 5 von 12 numerischen Merkmalen
+zeigten nach Yeo-Johnson eine echte, im Q-Q-Plot sichtbare Verbesserung
+(S-Kurve geglaettet), waehrend bei allen 12 Merkmalen charakteristische
+Randplateaus (Folge von np.clip()-Grenzen aus der Datengenerierung)
+bestehen blieben - Beispiel duesenspalt: Skewness sank von 0.776 auf
+0.017, Shapiro-p blieb aber praktisch unveraendert bei 0.00000.
+
+---
+
+## EDA-Preprocessing-Kopplung: Empfehlungen direkt aus EDA-Kennzahlen ableiten
+
+**Konzept (Arbeitsprinzip dieses Projekts):** Preprocessing-Entscheidungen
+(Skalierungstyp, Transformationsbedarf, Encoding, Multikollinearitaets-
+Behandlung) sollen nicht als separater, unabhaengiger Schritt in der
+Preprocessing-Phase neu hergeleitet werden, sondern DIREKT aus den
+bereits in der EDA berechneten Kennzahlen (Skewness, Kurtosis, Shapiro-
+Wilk, IQR-Ausreisser, Korrelationsmatrizen) begruendet abgeleitet und
+in der EDA selbst dokumentiert werden. Vermeidet Doppelarbeit und stellt
+sicher, dass jede Preprocessing-Entscheidung eine nachvollziehbare,
+zahlenbasierte Begruendung hat statt einer Standardannahme ("wir nutzen
+StandardScaler, weil das ueblich ist").
+
+**Rollenverteilung bei unklaren/Grenzfall-Entscheidungen:** wo die
+Datenlage keine eindeutige Antwort liefert (z.B. mehrere gleichwertige
+Feature-Set-Varianten, Modellarchitektur-Alternativen), werden KEINE
+Vorab-Annahmen getroffen - stattdessen werden mehrere Kandidaten als
+gleichwertige Optionen definiert und in der spaeteren Ablationsstudie
+(Modelltraining) empirisch verglichen. Die Entscheidung selbst bleibt
+beim Nutzer, begruendete Empfehlungen kommen aus der Datenanalyse.
+
+**Projektbezug:** Notebook 09 (Modell B) EDA um explizite Preprocessing-
+Implikationen-Zellengruppe erweitert, statt dies (wie bei Modell A
+teilweise implizit gehandhabt) erst in Notebook 10 neu zu bewerten.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*

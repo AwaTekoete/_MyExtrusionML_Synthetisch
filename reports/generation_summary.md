@@ -1426,3 +1426,55 @@ Werte dienen nur als nachtraeglicher, separat gekennzeichneter Abgleich.
 Naechster Schritt: zusammenfassende Wichtigkeits-Tabelle (AP 6),
 Notebook-Abschluss-Markdown (AP 7), danach Uebergang zu Preprocessing
 Modell B (Notebook 10).
+
+---
+
+## Nachtrag: Preprocessing-Implikationen direkt in der EDA verankert
+
+Nach Nutzer-Feedback (Arbeitsprinzip: EDA muss Preprocessing-Bedarf
+explizit, zahlenbasiert begruenden, nicht erst nachtraeglich in
+Notebook 10 neu herleiten) wurde Notebook 09 um eine Preprocessing-
+Implikationen-Zellengruppe erweitert.
+
+**Transformationsbedarf (Yeo-Johnson), Skewness/Shapiro Vorher/Nachher
+fuer alle 12 numerischen Merkmale:** nur 3 von 12 Merkmalen werden nach
+Transformation als normalverteilt eingestuft (produktionsgeschwindigkeit_
+soll, schneckendrehzahl, kuehlwassertemperatur). Skewness sinkt dagegen
+bei fast allen Merkmalen deutlich - WICHTIGER WIDERSPRUCH aufgedeckt und
+per Q-Q-Plot (alle 12 Merkmale) visuell aufgeklaert: fast alle Merkmale
+zeigen an BEIDEN Enden der Verteilung horizontale "Plateaus" - direkte
+Folge der np.clip()-Grenzen aus der Notebook-08-Datengenerierung.
+Yeo-Johnson kann die mittlere Kurvenform glaetten, aber NICHT die
+kuenstlichen Randplateaus beheben (strukturelle Grenze, keine Schiefe).
+
+**Ergebnis, nutzerseitig visuell gegengeprueft (Zelle-fuer-Zelle-Review):**
+5 von 12 Merkmalen zeigen echte, sichtbare Verbesserung durch Yeo-Johnson
+(dn_ziel, wandstaerke_soll, schneckendrehzahl, vakuumniveau,
+innenluftdruck - S-Kurve im Q-Q-Plot geglaettet). Bei den anderen 7
+(material_mfr, dickentoleranz, produktionsgeschwindigkeit_soll,
+ovalitaet_anforderung, massetemperatur, duesenspalt, kuehlwassertemperatur)
+kein messbarer Nutzen - entweder bereits symmetrisch/gleichverteilt
+konstruiert, oder Verbesserung durch die Clipping-Raender statistisch
+ueberdeckt (Beispiel duesenspalt: Skewness 0.776->0.017, aber Shapiro-p
+bleibt praktisch unveraendert bei 0.00000).
+
+**Entscheidung (Option A gewaehlt, Nutzer-Entscheidung):** Clipping-
+Plateaus werden als dokumentierte Limitation akzeptiert, KEINE Ueber-
+arbeitung der Notebook-08-Generierungsformeln. Yeo-Johnson selektiv nur
+fuer die 5 nachgewiesen hilfreichen Merkmale vorgesehen fuer Notebook 10.
+
+**Skalierung:** StandardScaler einheitlich bestaetigt, begruendet durch
+die bereits vorhandene IQR-Ausreisser-Analyse (Notebook 09, Zelle 07) -
+alle Merkmale zeigen niedrige bis moderate Ausreisser-Anteile (0-3.65%),
+kein Hinweis auf extreme Einzelausreisser, die RobustScaler noetig
+machen wuerden.
+
+Finale, begruendete Empfehlungstabelle gespeichert:
+reports/tables/09_finale_preprocessing_empfehlung_model_b.csv - dient
+als direkte, zahlenbasierte Grundlage fuer Notebook 10 (Preprocessing),
+keine neue Herleitung dort noetig.
+
+Naechster Schritt: Notebook-10-Planung - Encoding, Multikollinearitaets-
+Feature-Sets (mehrere Kandidaten fuer spaetere Ablationsstudie, keine
+Vorab-Entscheidung), Multi-Output- vs. Einzelmodell-Struktur (ebenfalls
+als zu testende Kandidaten, Entscheidung in Notebook 11).
