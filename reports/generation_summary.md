@@ -1284,4 +1284,145 @@ A-Designphilosophie).
 
 ---
 
-## Notebook [Modell B – wird ergaenzt, sobald Datengenerierung fuer Modell B beginnt]
+## Notebook 08 – Datengenerierung Modell B
+
+X_B (7 Merkmale) und Y_B (5 Stellgroessen) generiert, n=2000, kausal
+geordnete Formelkette (Schneckendrehzahl -> Massetemperatur ueber
+Scherwaerme-Effekt -> Kuehlwassertemperatur), analog zur fachlich
+korrigierten Kopplung aus der Konzeptklaerung (Extrusionstechnik-
+Literatur: Scherwaerme-Dissipation bei hoeherer Drehzahl erhoeht die
+tatsaechliche Massetemperatur zusaetzlich zur Heizzonen-Solltemperatur).
+
+**Iterative Formelkorrekturen nach Plausibilitaetspruefung gegen Modell
+A:** Kalibrierdruck-Koeffizienten gedaempft (Std von 132 auf 82 reduziert),
+Massetemperatur-/Kuehlwasser-Wertebereich erweitert, Duesenspalt-Formel
+realistischer gestaltet (Material-abhaengiger Die-Swell-Faktor statt
+Konstante, verstaerktes Rauschen - urspruengliche Version war zu
+deterministisch/nahezu perfekt linear, Lookup-Tabellen-Risiko). Zwei
+Deckelungsartefakte (produktionsgeschwindigkeit_soll, duesenspalt,
+kuehlwassertemperatur) durch Grenzen-Erweiterung behoben.
+
+Gespeichert: data/raw/model_b_raw.csv (2000 Zeilen, 13 Spalten).
+
+---
+
+## Notebook 09 – EDA Modell B (laufend)
+
+Deskriptive Statistik: Kuehlwassertemperatur einzige normalverteilte
+Y_B-Groesse; alle anderen signifikant nicht-normal (Shapiro-Wilk), wie
+erwartet. Kalibrierdruck zeigt deutliche Bimodalitaet (zwei getrennte
+Verteilungsgipfel, Skewness=-1.77, Kurtosis=1.74).
+
+### Kritische Analyse: Multimodale Zielgroesse - brauchen wir zwei Modelle?
+
+Wichtige Nutzerfrage, per Literaturrecherche fundiert beantwortet: ein
+einzelnes Standardregressionsmodell auf eine multimodale Zielgroesse
+tendiert dazu, den GEWICHTETEN DURCHSCHNITT der Modi vorherzusagen -
+einen Wert, der zwischen den tatsaechlichen Gruppen liegt und in der
+Realitaet nie auftritt (bestaetigt durch Fachliteratur zu Mixture-
+Density-Ansaetzen).
+
+**Entscheidendes Kriterium aus der Literatur:** ob getrennte Modelle
+noetig sind, haengt davon ab, ob die modusbestimmende Variable BEKANNT
+und im Datensatz VERFUEGBAR ist:
+- Bekannte/beobachtbare Ursache -> KEIN separates Modell noetig, ein
+  einzelnes Modell mit dieser Variable als Feature kann die Bimodalitaet
+  vollstaendig aufloesen (Baummodelle automatisch via Split, lineare
+  Modelle ueber explizite Dummy-Variable)
+- Latente/unbeobachtete Ursache -> Finite Mixture Regression oder
+  Mixture Density Networks waeren erforderlich
+
+**Pruefung fuer unseren Fall:** kalibrierdruck getrennt nach
+kalibriermechanismus (Formluft/Vakuum) aufgeteilt - Ursache der
+Bimodalitaet ist bekannt und bereits als X_B-Feature vorhanden (leitet
+sich aus dn_ziel ab). Beide Teilgruppen zeigen in der Visualisierung
+klar EINGIPFLIGE Verteilungen (keine zweite Haeufung mehr sichtbar).
+
+**Wichtige Praezisierung (Selbstkorrektur):** Shapiro-Wilk-Test zeigte
+fuer BEIDE Teilgruppen signifikante Nicht-Normalitaet (Formluft:
+p=0.00118, n=1668; Vakuum: p=0.00010, n=332) - urspruengliche Annahme
+"beide Gruppen sind normalverteilt" war unzutreffend formuliert. Bei
+grossen Stichproben ist Shapiro-Wilk sehr empfindlich und markiert auch
+kleine, praktisch irrelevante Abweichungen als signifikant. Die fuer die
+Modellfrage tatsaechlich relevante Eigenschaft ist EINGIPFLIGKEIT
+(unimodal), nicht perfekte Normalverteilung - diese ist fuer beide
+Gruppen visuell eindeutig gegeben. Lehre: Visuelle Pruefung (Histogramm)
+und statistischer Test koennen bei grossen n unterschiedliche,
+scheinbar widerspruechliche Signale geben - beide Perspektiven
+verwenden, nicht nur den p-Wert isoliert interpretieren.
+
+**Schlussfolgerung:** kein separates Modell fuer Formluft/Vakuum-Faelle
+noetig. Ein einzelnes Modell mit kalibriermechanismus/dn_ziel als
+Feature ist ausreichend - zusaetzliches Argument fuer baumbasierte
+Modelle bei dieser Zielgroesse (automatischer Split), waehrend rein
+lineare Modelle die explizite Mechanismus-Dummy-Variable zwingend
+benoetigen wuerden.
+
+Naechster Schritt: kategoriale Variablen (Wandtyp-Verteilung), X_B x Y_B
+Korrelationsmatrix, Bayes-Floor-Berechnung je Y_B-Groesse.
+
+---
+
+## Root-Cause-Korrektur: Vakuum/Innenluft-Mechanismus unrealistisch modelliert
+
+Waehrend der EDA (Kalibrierdruck-Bimodalitaetsanalyse) fachliches
+Nutzer-Feedback ergab: der urspruengliche harte DN>200-Schwellenwert fuer
+Formluft/Vakuum-Umschaltung war fachlich unrealistisch. Laut Extrusions-
+technik ist der Uebergang fliessend und multifaktoriell (Material/
+Schmelzfestigkeit, Wanddicke, Liniengeschwindigkeit, Kuehlkonzept), nicht
+primaer durchmesserabhaengig. Zudem wirken Vakuum und Innenluft
+GLEICHZEITIG gegeneinander (Vakuum zieht von aussen an die Kavitaet,
+Innenluft stabilisiert von innen gegen Kollaps/Ovalitaet), kein Schalter
+zwischen zwei sich ausschliessenden Modi.
+
+**Korrektur (Notebook 08):** kalibrierdruck/kalibriermechanismus ersetzt
+durch zwei separate, immer gleichzeitig vorhandene kontinuierliche
+Groessen: vakuumniveau (staerker bei dickerer Wand, hoeherer
+Schmelzfestigkeit) und innenluftdruck (staerker bei duennerer Wand,
+hoeherer Liniengeschwindigkeit, gegenlaeufig zu Vakuum). Y_B waechst
+dadurch von 5 auf 6 Zielgroessen. Kalibriermechanismus als kategoriale
+Variable entfaellt komplett.
+
+**Vollstaendiger EDA-Neustart (Notebook 09):** alle Zellen, die die alte
+Struktur referenzierten, systematisch korrigiert oder entfernt (Boxplots
+nach Mechanismus entfernt, PCA-Einfaerbung auf kontinuierliche Wandstaerke
+umgestellt, Ground-Truth-Validierung komplett entfernt - keine binaere
+Struktur mehr vorhanden, die validiert werden koennte). Ergebnis:
+Pearson/Spearman/Mutual-Information zeigen jetzt durchgehend konsistente,
+moderate Werte (kein Methodenkonflikt mehr wie beim alten Kalibrierdruck-
+Sprung). PCA-Scatter zeigt fliessenden Gradienten statt kuenstlicher
+Zwei-Gruppen-Trennung.
+
+### Lookup-Tabellen-Check nach der Korrektur (aktualisiert)
+
+Einzelmerkmal-R² fuer die zwei neuen Druckgroessen liegt deutlich
+niedriger als beim alten (unrealistischen) Kalibrierdruck: vakuumniveau
+R²=0.312, innenluftdruck R²=0.405 (vorher kalibrierdruck R²=0.507,
+kuenstlich durch den Sprung aufgeblaeht). Nur duesenspalt bleibt nahe
+einer trivialen Lookup-Beziehung (R²=0.945, physikalisch begruendet).
+Alle anderen 5 von 6 Y_B-Groessen benoetigen mehrere Merkmale gemeinsam -
+echter ML-Mehrwert gegenueber einer einfachen Nachschlagetabelle bestaetigt.
+
+### Kategoriale Variable wandtyp: Kardinalitaet/Entropie
+
+Kardinalitaet=2, Dominanz 73.8%/26.2% (einwandig/doppelwandig),
+normierte Shannon-Entropie=0.83 - moderat, nicht extrem unausgeglichen,
+konsistent mit identischer Verteilung bei Modell A (73.4%/26.6%). Kein
+spezieller Handlungsbedarf fuer Preprocessing (einfaches One-Hot-Encoding
+ausreichend), class_weight-Betrachtung bei Bedarf trotzdem sinnvoll.
+
+### Wichtige methodische Klaerung: Bayes-Floor "blind" vs. formelbasiert
+
+Kritische Nutzerpruefung deckte auf: direkte Nutzung der bekannten
+Generierungsformel fuer die Bayes-Floor-Berechnung widerspricht dem
+Blind-EDA-Prinzip. Klargestellt und in methodik_glossar.md dokumentiert:
+formelbasierte Berechnung ist eine INTERNE Konstruktions-Validierung
+(nur moeglich, weil wir die Formel kennen), kein Teil der offiziellen
+blinden EDA. Der methodisch korrekte "Bayes-Floor-Ersatz" fuer die
+Studie erfolgt spaeter ueber die Empirical-Upper-Bound-Methode (bestes
+erreichtes CV-R² aus der Modelltrainingsphase, AP 3.10) - formelbasierte
+Werte dienen nur als nachtraeglicher, separat gekennzeichneter Abgleich.
+
+Naechster Schritt: zusammenfassende Wichtigkeits-Tabelle (AP 6),
+Notebook-Abschluss-Markdown (AP 7), danach Uebergang zu Preprocessing
+Modell B (Notebook 10).

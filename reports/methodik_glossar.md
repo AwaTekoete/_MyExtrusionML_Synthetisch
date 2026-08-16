@@ -1139,5 +1139,100 @@ Multi-Label- auf binaere Zielgroesse statt Datenanpassung.
 
 ---
 
+## Multimodale Zielgroesse: separates Modell vs. Feature-basierte Aufloesung
+
+**Problem:** Ein Standard-Regressionsmodell auf eine multimodale
+Zielgroesse (mehrere getrennte Verteilungsgipfel) tendiert dazu, den
+gewichteten Durchschnitt der Modi vorherzusagen - einen Wert zwischen
+den tatsaechlichen Gruppen, der in der Realitaet oft gar nicht auftritt
+("Regression zum Mittelwert" ueber Gruppen hinweg).
+
+**Entscheidendes Kriterium:** ob die modusbestimmende Variable bekannt
+und als Feature verfuegbar ist.
+- Bekannt/beobachtbar: EIN Modell reicht, mit dieser Variable als Input -
+  Baummodelle loesen das automatisch durch Splits, lineare Modelle
+  benoetigen die explizite Dummy-/Kategorie-Variable im Feature-Set
+- Latent/unbeobachtet: separate Modellierung noetig (Finite Mixture
+  Regression, Mixture Density Networks)
+
+**Pruefmethode:** Zielgroesse getrennt nach der vermuteten modus-
+bestimmenden Variable aufteilen und pruefen, ob die Teilgruppen jeweils
+eingipflig (unimodal) sind - relevanter als perfekte Normalverteilung.
+
+**Projektbezug:** Modell B, kalibrierdruck zeigte Gesamtverteilung
+bimodal (Formluft/Vakuum-Sprung bei DN=200). Aufteilung nach
+kalibriermechanismus (bereits als X_B-Feature vorhanden) zeigte fuer
+beide Gruppen eingipflige Verteilungen - kein separates Modell noetig.
+
+---
+
+## Shapiro-Wilk-Empfindlichkeit bei grossen Stichproben
+
+**Konzept:** Der Shapiro-Wilk-Test wird bei wachsender Stichprobengroesse
+zunehmend empfindlich - er markiert auch kleine, praktisch irrelevante
+Abweichungen von der perfekten Normalverteilung als statistisch
+signifikant. Ein signifikantes Ergebnis (p<0.05) bei grossem n bedeutet
+daher nicht automatisch eine praktisch relevante Nicht-Normalitaet.
+
+**Praktische Konsequenz:** bei grossen Stichproben sollte der p-Wert
+NICHT isoliert interpretiert werden - eine visuelle Pruefung (Histogramm,
+Q-Q-Plot) ist notwendig, um zu beurteilen, OB die Abweichung praktisch
+relevant ist (z.B. Bimodalitaet, starke Schiefe) oder nur eine kleine,
+irrelevante Unregelmaessigkeit bei ansonsten eingipfliger Form.
+
+**Projektbezug:** Notebook 09, kalibrierdruck getrennt nach Mechanismus-
+Gruppe: beide Teilgruppen statistisch signifikant nicht-normal
+(p<0.001), aber visuell eindeutig eingipflig - fuer die eigentliche
+Fragestellung (brauchen wir getrennte Modelle?) war Eingipfligkeit das
+relevante Kriterium, nicht der p-Wert allein.
+
+---
+
+## Bayes-Floor-Schaetzung: "blind" (datenbasiert) vs. Formel-basiert
+
+**Kritische Klarstellung (nach Nutzerprüfung entstanden):** Ein echter
+Bayes-Floor (theoretische Obergrenze der Vorhersagegueete) ist bei rein
+datenbasiertem Vorgehen grundsaetzlich NICHT exakt berechenbar - ein
+Analyst ohne Kenntnis der wahren Generierungsformel kann das irreduzible
+Rauschen nur SCHAETZEN, nicht exakt bestimmen. Die direkte Nutzung einer
+bekannten Generierungsformel (wie bei synthetischen Projektdaten moeglich)
+ist deshalb kein Ersatz fuer eine "blinde" EDA-Methode, sondern eine
+andersartige, nur intern verfuegbare Qualitaetskontrolle.
+
+**State-of-Art-Methoden fuer eine echte, "blinde" Obergrenzen-Schaetzung
+(kein Formelwissen vorausgesetzt):**
+
+1. **Replicate-Based Noise Estimation:** bei mehreren Zeilen mit sehr
+   aehnlichen X-Werten (z.B. via k-naechste-Nachbarn im Feature-Raum
+   gruppiert) wird die Streuung von Y INNERHALB dieser aehnlichen Gruppen
+   als Schaetzer fuer das irreduzible Rauschen verwendet.
+2. **Empirical Upper Bound (am haeufigsten in der Praxis verwendet):**
+   mehrere leistungsfaehige, gut getunte Modelle trainieren (Cross-
+   Validation) - das beste erreichte R²/F1 ist eine UNTERE Schranke fuer
+   den wahren Bayes-Floor (der wahre Floor kann nicht kleiner sein als
+   das bereits Erreichte). Pragmatischste, gaengigste Methode.
+3. **Test-Retest-Konsistenz / Noise-Ceiling:** bei vorhandenen
+   Wiederholungsmessungen derselben Beobachtung liefert deren Korrelation
+   einen Schaetzer fuer die maximal erreichbare Vorhersagegueete
+   (Psychometrie/Neurowissenschaft-Standard, nicht immer anwendbar).
+4. **Residualanalyse nach bestem Modell:** Pruefung, ob die Restfehler
+   des besten trainierten Modells zufaellig verteilt sind (kein
+   erkennbares Muster mehr gegen X-Merkmale) - Indiz, dass das
+   erklaerbare Signal ausgeschoepft ist. Plausibilitaetspruefung, kein
+   exakter Wert.
+
+**Einordnung fuer dieses Projekt:** die formel-basierte Berechnung
+(Notebook 03 bei Modell A, urspruenglich auch bei Modell B geplant) ist
+NICHT Teil der offiziellen "blinden" EDA - sie ist eine interne
+Konstruktions-Validierung, die nur moeglich ist, weil wir selbst die
+Generierungsformel kennen (Vorteil, den ein spaeteres trainiertes Modell
+nie hat). Der eigentliche, methodisch korrekte "Bayes-Floor-Ersatz" fuer
+die Studie ist Methode 2 (Empirical Upper Bound) aus der spaeteren
+Modelltrainingsphase - dort wird das beste erreichte CV-R² als
+praktische Obergrenzen-Schaetzung kommuniziert. Formel-basierte Werte
+dienen nur als nachtraeglicher, separat gekennzeichneter Abgleich.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
