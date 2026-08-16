@@ -1478,3 +1478,38 @@ Naechster Schritt: Notebook-10-Planung - Encoding, Multikollinearitaets-
 Feature-Sets (mehrere Kandidaten fuer spaetere Ablationsstudie, keine
 Vorab-Entscheidung), Multi-Output- vs. Einzelmodell-Struktur (ebenfalls
 als zu testende Kandidaten, Entscheidung in Notebook 11).
+
+---
+
+## Notebook 10 – Preprocessing Modell B
+
+Encoding (wandtyp, drop_first=True, analog Modell A). WandstaerkeDN-
+Residualizer als leakage-sicherer Custom-Transformer gebaut (analog
+Modell A's DNResidualizer) - berechnet den DN-unabhaengigen Anteil von
+wandstaerke_soll, verifiziert (Residuen-Mean=0, Korrelation zu DN=0).
+
+**4 Feature-Set-Kandidaten definiert, KEINE Vorab-Entscheidung getroffen**
+(Arbeitsprinzip, siehe Notebook 09 Nachtrag): original (alle 7 X_B,
+inkl. DN+Wandstaerke), nur_dn (Wandstaerke entfernt), nur_wandstaerke
+(DN entfernt), residualisiert (DN-bereinigte Wandstaerke statt Original).
+Pipeline-Builder fuer alle 4 Varianten implementiert und verifiziert
+(korrekte Spaltenanzahl je Set: 7/6/6/7).
+
+Finaler Datensatz gespeichert: data/processed/model_b_preprocessed.csv
+(2000 Zeilen, 14 Spalten). src/preprocessing.py um Modell-B-Funktionen
+erweitert (FEATURE_SETS_B, WandstaerkeDNResidualizer,
+baue_preprocessing_pipeline_b, load_dataset_b) - fehlende Imports
+(Pipeline, FeatureUnion, FunctionTransformer) nachtraeglich ergaenzt und
+per direktem Modul-Test verifiziert.
+
+**Zwei offene Entscheidungsfragen bewusst NICHT hier beantwortet**,
+sondern als zu testende Kandidaten fuer Notebook 11 (Ablationsstudie)
+festgehalten:
+1. Feature-Set-Wahl (die 4 oben genannten Kandidaten)
+2. Zielgroessen-Struktur: ein Multi-Output-Modell (alle 6 Y_B gleichzeitig)
+   vs. 6 separate Einzelmodelle - Vergleich ueber dieselben Kriterien wie
+   bei Modell A (Genauigkeit, Robustheit/Train-CV-Gap, Rechenzeit,
+   Erklaerbarkeit/SHAP-Eignung)
+
+Naechster Schritt: Notebook 11, Modelltraining Modell B (Ablationsstudie),
+datengetriebene Entscheidung ueber beide offene Fragen.
