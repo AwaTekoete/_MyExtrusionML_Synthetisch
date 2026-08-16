@@ -17,6 +17,8 @@
 # =============================================================================
 
 import pandas as pd
+from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.preprocessing import FunctionTransformer
 
 
 # -----------------------------------------------------------------------------
@@ -267,3 +269,59 @@ class DNResidualizer(BaseEstimator, TransformerMixin):
             residuen["dn_proxy"] = dn_proxy
 
         return residuen
+
+# =============================================================================
+# Modell B: Feature-Sets, Residualizer, Pipeline-Builder
+# =============================================================================
+
+X_B_MERKMALE_ENCODED = ["material_mfr", "dn_ziel", "wandstaerke_soll", "dickentoleranz",
+                         "produktionsgeschwindigkeit_soll", "ovalitaet_anforderung", "wandtyp_einwandig"]
+Y_B_MERKMALE = ["schneckendrehzahl", "massetemperatur", "duesenspalt",
+                 "vakuumniveau", "innenluftdruck", "kuehlwassertemperatur"]
+
+FEATURE_SETS_B = {
+    "original": X_B_MERKMALE_ENCODED,
+    "nur_dn": [c for c in X_B_MERKMALE_ENCODED if c != "wandstaerke_soll"],
+    "nur_wandstaerke": [c for c in X_B_MERKMALE_ENCODED if c != "dn_ziel"],
+    "residualisiert": [c for c in X_B_MERKMALE_ENCODED if c != "wandstaerke_soll"] + ["wandstaerke_soll_dn_bereinigt"],
+}
+
+
+class WandstaerkeDNResidualizer(BaseEstimator, TransformerMixin):
+    """Berechnet DN-bereinigte Residuen fuer wandstaerke_soll (Modell B)."""
+
+    def fit(self, X, y=None):
+        X = pd.DataFrame(X, columns=["dn_ziel", "wandstaerke_soll"]) if not isinstance(X, pd.DataFrame) else X
+        self.regression_ = LinearRegression().fit(X[["dn_ziel"]], X["wandstaerke_soll"])
+        return self
+
+    def transform(self, X):
+        X = pd.DataFrame(X, columns=["dn_ziel", "wandstaerke_soll"]) if not isinstance(X, pd.DataFrame) else X
+        vorhersage = self.regression_.predict(X[["dn_ziel"]])
+        residuum = pd.DataFrame(index=X.index)
+        residuum["wandstaerke_soll_dn_bereinigt"] = X["wandstaerke_soll"].values - vorhersage
+        return residuum
+
+
+def baue_preprocessing_pipeline_b(feature_set_name):
+    """Analog zu Notebook 10, Zelle 05 - siehe dort fuer Details."""
+    basis_merkmale_ohne_wandstaerke = [c for c in X_B_MERKMALE_ENCODED if c not in ["dn_ziel", "wandstaerke_soll"]]
+
+    if feature_set_name in ["original", "nur_dn", "nur_wandstaerke"]:
+        return Pipeline([
+            ("select", FunctionTransformer(lambda X: X[FEATURE_SETS_B[feature_set_name]])),
+            ("scale", StandardScaler()),
+        ])
+    elif feature_set_name == "residualisiert":
+        rest_transform = Pipeline([("select", FunctionTransformer(lambda X: X[basis_merkmale_ohne_wandstaerke + ["dn_ziel"]]))])
+        residual_transform = Pipeline([("residualize", WandstaerkeDNResidualizer())])
+        return Pipeline([
+            ("union", FeatureUnion([("rest", rest_transform), ("residual", residual_transform)])),
+            ("scale", StandardScaler()),
+        ])
+    raise ValueError(f"Unbekanntes Feature-Set: {feature_set_name}")
+
+
+def load_dataset_b(path="../data/processed/model_b_preprocessed.csv"):
+    """Laedt den finalen Preprocessing-Datensatz Modell B."""
+    return pd.read_csv(path)
