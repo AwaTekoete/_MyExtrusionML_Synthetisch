@@ -1,0 +1,13 @@
+merkmal,skewness_vorher,skewness_nachher,shapiro_p_vorher,shapiro_p_nachher,normalverteilt_vorher,normalverteilt_nachher
+material_mfr,0.095,-0.009,0.0,0.0,False,False
+dn_ziel,0.935,0.003,0.0,0.0,False,False
+wandstaerke_soll,0.771,0.033,0.0,0.0,False,False
+dickentoleranz,-0.015,-0.023,0.0,0.0,False,False
+produktionsgeschwindigkeit_soll,-0.052,0.002,0.04067,0.06762,False,True
+ovalitaet_anforderung,-0.042,-0.049,0.0,0.0,False,False
+schneckendrehzahl,0.408,0.001,0.0,0.42602,False,True
+massetemperatur,0.136,0.0,0.00253,0.04672,False,False
+duesenspalt,0.776,0.017,0.0,1e-05,False,False
+vakuumniveau,-0.109,-0.035,0.0,0.0,False,False
+innenluftdruck,-0.461,-0.073,0.0,0.0,False,False
+kuehlwassertemperatur,0.062,0.012,0.04888,0.07844,False,True
