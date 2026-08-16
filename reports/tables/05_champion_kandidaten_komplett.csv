@@ -1,0 +1,27 @@
+zielgroesse,modell,bestes_feature_set,f1_mean,f1_std,precision_mean,recall_mean,mcc_mean,roc_auc_mean,f1_gap_mean,feature_set_spannweite,fit_zeit_sek,interpretierbarkeit,black_box,shap_typ,mae_mean,rmse_mean,r2_mean,f1_rueckuebersetzt_mean,f1_rueckuebersetzt_std,f1_rueckuebersetzt_gap_mean,f1_macro_mean,f1_micro_mean,subset_accuracy_mean
+binary,LogisticRegression,original,0.382,0.041,0.294,0.548,0.072,0.585,0.07,0.008,0.0164,hoch,False,"LinearExplainer (exakt, schnell)",,,,,,,,,
+binary,kNN,original_no_kategorial,0.194,0.056,0.34,0.137,0.061,0.587,0.241,0.03,0.0029,mittel,False,"KernelExplainer (approximativ, sehr langsam)",,,,,,,,,
+binary,SVC,original,0.41,0.063,0.338,0.52,0.144,,0.142,0.018,0.0051,niedrig,True,"KernelExplainer (approximativ, langsam)",,,,,,,,,
+binary,RandomForest,original,0.37,0.075,0.359,0.383,0.142,0.586,0.532,0.017,0.2993,niedrig-mittel,True,"TreeExplainer (exakt, schnell)",,,,,,,,,
+binary,HistGradientBoosting,residual,0.383,0.03,0.336,0.452,0.12,0.574,0.34,0.047,0.717,niedrig,True,"TreeExplainer (exakt, schnell)",,,,,,,,,
+binary,XGBoost,residual,0.37,0.058,0.343,0.404,0.123,0.579,0.413,0.036,0.0161,niedrig,True,"TreeExplainer (exakt, schnell)",,,,,,,,,
+binary,LightGBM,residual,0.395,0.043,0.341,0.473,0.13,0.577,0.307,0.033,0.0123,niedrig,True,"TreeExplainer (exakt, schnell)",,,,,,,,,
+binary,GaussianNB,original_no_kategorial,0.423,0.063,0.35,0.556,0.161,0.619,0.032,0.131,0.0015,mittel,False,KernelExplainer (approximativ),,,,,,,,,
+binary,MLP,original_no_kategorial,0.295,0.136,0.379,0.282,0.134,0.588,-0.012,0.295,0.0509,sehr niedrig,True,KernelExplainer (approximativ),,,,,,,,,
+continuous,Ridge,combined,,,,,,,,0.012,0.0026,hoch,False,"LinearExplainer (exakt, schnell)",0.306,0.432,-0.001,0.335,0.044,0.077,,,
+continuous,kNN,combined,,,,,,,,0.029,0.0,mittel,False,"KernelExplainer (approximativ, sehr langsam)",0.323,0.452,-0.099,0.339,0.034,0.165,,,
+continuous,SVR,residual,,,,,,,,0.055,0.0091,niedrig,True,"KernelExplainer (approximativ, langsam)",0.299,0.439,-0.034,0.3,0.068,0.338,,,
+continuous,RandomForest,original_no_kategorial,,,,,,,,0.023,0.3456,niedrig-mittel,True,"TreeExplainer (exakt, schnell)",0.312,0.438,-0.03,0.383,0.051,0.37,,,
+continuous,HistGradientBoosting,combined,,,,,,,,0.045,0.0566,niedrig,True,"TreeExplainer (exakt, schnell)",0.312,0.44,-0.041,0.366,0.031,0.301,,,
+continuous,XGBoost,residual,,,,,,,,0.041,0.0369,niedrig,True,"TreeExplainer (exakt, schnell)",0.31,0.438,-0.03,0.37,0.036,0.314,,,
+continuous,LightGBM,original_no_kategorial,,,,,,,,0.005,0.0145,niedrig,True,"TreeExplainer (exakt, schnell)",0.311,0.435,-0.018,0.364,0.046,0.225,,,
+continuous,MLP,residual,,,,,,,,0.058,0.1009,sehr niedrig,True,KernelExplainer (approximativ),0.335,0.455,-0.115,0.384,0.039,0.045,,,
+multilabel,LogisticRegression,combined,,,,,,,,0.004,0.0621,hoch,False,"LinearExplainer (exakt, schnell)",,,,0.425,0.019,0.007,0.113,0.138,0.112
+multilabel,kNN,original_no_kategorial,,,,,,,,0.039,0.0094,mittel,False,"KernelExplainer (approximativ, sehr langsam)",,,,0.039,0.032,0.042,0.009,0.023,0.734
+multilabel,SVC,original_no_kategorial,,,,,,,,0.03,0.0391,niedrig,True,"KernelExplainer (approximativ, langsam)",,,,0.425,0.025,0.071,0.089,0.132,0.232
+multilabel,RandomForest,original,,,,,,,,0.049,2.4866,niedrig-mittel,True,"TreeExplainer (exakt, schnell)",,,,0.356,0.1,0.492,0.055,0.098,0.588
+multilabel,HistGradientBoosting,original,,,,,,,,0.056,10.9449,niedrig,True,"TreeExplainer (exakt, schnell)",,,,0.403,0.045,0.283,0.098,0.15,0.405
+multilabel,XGBoost,original_no_kategorial,,,,,,,,0.04,0.1621,niedrig,True,"TreeExplainer (exakt, schnell)",,,,0.052,0.049,0.186,0.004,0.011,0.738
+multilabel,LightGBM,original_no_kategorial,,,,,,,,0.028,0.142,niedrig,True,"TreeExplainer (exakt, schnell)",,,,0.358,0.045,0.359,0.07,0.113,0.425
+multilabel,GaussianNB,original,,,,,,,,0.002,0.0198,mittel,False,KernelExplainer (approximativ),,,,0.413,0.018,-0.001,0.084,0.09,0.021
+multilabel,MLP,original_no_kategorial,,,,,,,,0.19,0.544,sehr niedrig,True,KernelExplainer (approximativ),,,,0.19,0.098,0.019,0.028,0.046,0.691

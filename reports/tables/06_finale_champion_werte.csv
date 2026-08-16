@@ -1,0 +1,9 @@
+zielgroesse,modell,verwendete_werte,finaler_score
+binary,GaussianNB,getunt,0.42
+binary,LogisticRegression,getunt,0.423
+binary,SVC,getunt,0.423
+multilabel,GaussianNB,getunt,0.085
+multilabel,LogisticRegression,default,0.115
+multilabel,SVC,default,0.108
+continuous,Ridge,getunt,0.016
+continuous,RandomForest,getunt,0.022

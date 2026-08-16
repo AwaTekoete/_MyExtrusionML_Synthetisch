@@ -2,6 +2,6 @@ gruppierung,y_merkmal,h_statistik,p_wert,signifikant
 wandtyp,schneckendrehzahl,4.57,0.03261,True
 wandtyp,massetemperatur,1.77,0.18389,False
 wandtyp,duesenspalt,0.31,0.57554,False
-wandtyp,vakuumniveau,0.66,0.4174,False
+wandtyp,vakuumniveau,0.93,0.33384,False
 wandtyp,innenluftdruck,1.42,0.23266,False
 wandtyp,kuehlwassertemperatur,3.43,0.06405,False

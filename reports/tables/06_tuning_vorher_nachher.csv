@@ -1,0 +1,9 @@
+zielgroesse,modell,score_ALT_default,score_NEU_getunt,differenz
+binary,GaussianNB,0.423,0.42,-0.003
+binary,LogisticRegression,0.382,0.423,0.041
+binary,SVC,0.41,0.423,0.013
+multilabel,GaussianNB,0.078,0.085,0.007
+multilabel,LogisticRegression,0.115,0.088,-0.027
+multilabel,SVC,0.108,0.098,-0.01
+continuous,Ridge,-0.001,0.016,0.017
+continuous,RandomForest,-0.03,0.022,0.052
