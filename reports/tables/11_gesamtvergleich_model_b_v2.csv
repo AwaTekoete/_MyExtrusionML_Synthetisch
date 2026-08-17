@@ -1,0 +1,9 @@
+modell,struktur,r2_durchschnitt,r2_gap_durchschnitt,fit_zeit_sek
+Ridge,multioutput,0.5674,0.0063,0.0032
+XGBoost,einzeln,0.5515,0.093,0.1345
+LightGBM,einzeln,0.5493,0.0835,0.0918
+HistGradientBoosting,einzeln,0.549,0.0919,0.4149
+RandomForest,einzeln,0.5443,0.139,3.0385
+MLP,multioutput,0.5276,0.0284,1.4951
+SVR,einzeln,0.5261,0.0396,0.2476
+kNN,multioutput,0.4461,0.186,0.0027
