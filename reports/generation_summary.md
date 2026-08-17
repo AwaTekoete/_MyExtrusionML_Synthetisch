@@ -1513,3 +1513,84 @@ festgehalten:
 
 Naechster Schritt: Notebook 11, Modelltraining Modell B (Ablationsstudie),
 datengetriebene Entscheidung ueber beide offene Fragen.
+
+---
+
+## Notebook 11 – Modelltraining Modell B (Ablationsstudie)
+
+48-Kombinationen-Ablationsschleife (4 Feature-Sets x 8 Modelle x
+Struktur-Varianten wo zutreffend: Ridge/RandomForest/kNN/MLP nativ
+multi-output-faehig, daher je 2 Strukturen getestet; SVR/HistGB/XGBoost/
+LightGBM nur als Einzelmodelle). Vollstaendiges Metrik-Set (MAE, RMSE, R²,
+Median-AE, normierte Metriken, Train-CV-Gap, Fold-Std, Fit-/Predict-Zeit) -
+alle vom Nutzer explizit angefordert und begruendet, inkl. Ausschluss-
+Begruendung fuer nicht aufgenommene Metriken (MAPE: numerisch instabil
+nahe 0; Prediction Interval Coverage: nur fuer 3 nativ-faehige Modelle
+separat, nicht alle 8 wegen Mehraufwand).
+
+### Frage 1: Multi-Output vs. Einzelmodelle (datengetrieben beantwortet)
+
+Modellabhaengig, kein einheitliches Ergebnis: Ridge/kNN identisch
+(mathematisch aequivalent, Multi-Output nur schneller), RandomForest
+leicht besser als Einzelmodelle (+0.018 R² im Schnitt), MLP klar besser
+als Multi-Output (+0.057 R² im Schnitt - nutzt Interaktionen zwischen
+den 6 korrelierten Zielgroessen).
+
+### Frage 2: Feature-Set-Wahl (datengetrieben beantwortet)
+
+"original" (DN + Wandstaerke beide unveraendert behalten) gewinnt bei
+8 von 8 Modellen konsistent. Urspruengliche Multikollinearitaets-Sorge
+(r=0.957, Notebook 09) empirisch NICHT bestaetigt - beide Merkmale
+tragen komplementaere Information, die Residualisierung schadet
+durchweg mehr als die Multikollinearitaet nuetzt.
+
+### Sane-Default-Kalibrierung (RandomForest, MLP)
+
+RandomForest zeigte staerkstes Overfitting aller 8 Modelle (Gap=0.235) ->
+max_depth 8->6, min_samples_leaf 3->5, Gap auf 0.139 reduziert bei
+kaum veraenderter Genauigkeit. MLP zeigte negatives R² bei massetemperatur
+(-0.327, Konvergenzproblem) -> max_iter 1000->2000, learning_rate_init=
+0.005 (neu), n_iter_no_change 10->20 - R² sprang auf 0.53 (von 0.37-0.41),
+Massetemperatur-Ausreisser behoben (jetzt 0.300).
+
+### KRITISCHE KORREKTUR 1 (Nutzer-Einwand): Fold-Ueberlappung nicht beachtet
+
+Erste Champion-Aussage ("Ridge klar bestes Modell") war methodisch
+unvollstaendig - nur Mittelwerte verglichen, keine Streuung/Ueberlappung
+geprueft (im Gegensatz zu Modell A, wo dies Standard war). Nach
+Ergaenzung: Top-5-Modelle (Ridge 0.567±0.029, XGBoost 0.552±0.029,
+LightGBM 0.549±0.029, HistGB 0.549±0.030, RandomForest 0.544±0.032)
+ueberlappen sich statistisch - kein robust nachweisbarer Genauigkeits-
+unterschied. Nur kNN (0.446±0.032) hebt sich klar ab (schlechter).
+**Korrigierte Champion-Begruendung:** Ridge nicht wegen hoechster
+(nicht robust belegbarer) Genauigkeit, sondern wegen NACHWEISBAR
+geringstem Overfitting-Gap (0.006 vs. 0.08-0.14, nicht ueberlappend)
+und massiv geringerem Rechenaufwand (0.003s vs. 0.09-3.0s) - Sparsamkeits-
+prinzip bei statistisch gleichwertiger Genauigkeit.
+
+### KRITISCHE KORREKTUR 2 (Nutzer-Einwand): Hyperparameter-Herkunft ungeprueft
+
+Fast alle 8 Modelle nutzten Hyperparameter, die entweder 1:1 von Modell A
+(n=560 Training) uebernommen wurden - NICHT an Modell B's n=1600
+angepasst (fast 3x mehr Daten, rechtfertigt potenziell weniger
+Regularisierung bei Boosting-Modellen) - oder unkritische sklearn-
+Defaults waren (Ridge alpha, kNN n_neighbors, SVR C/gamma, MLP
+hidden_layer_sizes). Nur RandomForest/MLP wurden punktuell korrigiert.
+**Entscheidung:** vollstaendiges, systematisches Hyperparameter-Tuning
+fuer ALLE 8 Modelle notwendig (Notebook 12) - die aktuelle "Spitzengruppe
+ueberlappt sich"-Erkenntnis koennte sich nach fairer Kalibrierung aendern,
+keine belastbare finale Champion-Entscheidung vor diesem Schritt moeglich.
+
+**Wichtige methodische Lehre:** zwei aufeinanderfolgende, vom Nutzer
+selbst identifizierte Luecken (Streuungspruefung, Hyperparameter-Audit)
+zeigen den Wert kontinuierlicher kritischer Pruefung eigener bisheriger
+Schlussfolgerungen - eine erste, plausibel klingende Antwort ist nicht
+automatisch die vollstaendige oder korrekte.
+
+Gespeichert: reports/tables/11_ablation_results_model_b.csv (Iteration 1),
+reports/tables/11_ablation_results_model_b_v2.csv (Iteration 2, kalibriert),
+12 Grafiken (6 vor / 6 nach Kalibrierung, Feature-Set-/Modelltyp-Boxplots,
+R²-Vergleich, Overfitting-Diagnose, Aufwand-Nutzen, Y_B-Heatmap).
+
+Naechster Schritt: Notebook 12, systematisches Hyperparameter-Tuning
+(Nested CV, 5x5 Folds) fuer alle 8 Modelle, Feature-Set "original" fixiert.

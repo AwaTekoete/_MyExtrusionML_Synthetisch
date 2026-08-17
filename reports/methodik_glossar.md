@@ -1289,5 +1289,61 @@ teilweise implizit gehandhabt) erst in Notebook 10 neu zu bewerten.
 
 ---
 
+## Fold-Streuung als Pflichtbestandteil jeder Modellvergleich-Aussage
+
+**Konzept:** Ein Mittelwertvergleich (z.B. R² ueber 5 CV-Folds gemittelt)
+ist ohne die zugehoerige Streuung (Std ueber die Folds) unvollstaendig
+und kann zu falschen Schlussfolgerungen fuehren. Zwei Modelle mit
+Mittelwerten 0.567 und 0.552 wirken unterschiedlich - liegen ihre
+Streuungsbereiche (Mittelwert ± Std) aber uebereinander, ist der
+Unterschied statistisch nicht robust nachweisbar und koennte durch
+Zufall (welche Zeilen in welchem Fold landeten) entstanden sein.
+
+**Praktische Pruefmethode:** Streuungsbereiche (Mittelwert ± Std) der
+zu vergleichenden Modelle nebeneinanderstellen - bei Ueberlappung ist
+eine Rangfolge zwischen den Mittelwerten nicht robust interpretierbar,
+nur eine "Gruppenzugehoerigkeit" (z.B. "Spitzengruppe" vs. "klar
+abgeschlagen"). Fuer eine praezisere Aussage waere ein gepaarter
+statistischer Test (z.B. Wilcoxon-Signed-Rank ueber die Pro-Fold-
+Differenzen zweier Modelle auf denselben Folds) noetig.
+
+**Projektbezug:** Notebook 11, Modell B - erste Champion-Aussage ("Ridge
+klar bestes Modell") beruhte nur auf Mittelwertvergleich. Nach Ergaenzung
+der Fold-Std zeigte sich: 5 von 8 Modellen (Ridge, XGBoost, LightGBM,
+HistGradientBoosting, RandomForest) ueberlappen sich statistisch in der
+reinen Genauigkeit - Champion-Entscheidung musste auf andere, robust
+unterscheidbare Kriterien (Overfitting-Gap, Rechenzeit) gestuetzt werden.
+
+---
+
+## Hyperparameter-Herkunfts-Audit vor finaler Modellbewertung
+
+**Konzept:** Bevor eine Ablationsstudie/Modellvergleich als abschliessend
+betrachtet wird, sollte explizit geprueft werden, WOHER jeder verwendete
+Hyperparameter stammt - insbesondere bei Uebertragung von Konfigurationen
+zwischen verschiedenen Datensaetzen/Projekten (z.B. von einem frueheren
+Modell auf ein neues mit anderer Datenmenge). Uebernommene oder unkritisch
+belassene Default-Werte koennen ein Modell systematisch benachteiligen
+oder beguenstigen, ohne dass dies im Ergebnis sichtbar wird - es sieht
+wie ein Modellvergleich aus, ist aber teilweise ein Vergleich
+unterschiedlich fair konfigurierter Systeme.
+
+**Pruefmethode:** Fuer jedes Modell explizit dokumentieren: (a) stammt der
+Hyperparameter aus einem unkritischen sklearn-Default, (b) wurde er von
+einem anderen (moeglicherweise strukturell unterschiedlichen, z.B. andere
+Stichprobengroesse) Datensatz uebernommen, oder (c) wurde er fuer den
+aktuellen Datensatz spezifisch geprueft/kalibriert. Nur bei (c) ist ein
+fairer, aussagekraeftiger Vergleich zwischen Modellen sichergestellt.
+
+**Projektbezug:** Notebook 11, Modell B - Audit ergab, dass 6 von 8
+Modellen entweder unkritische Defaults nutzten oder Konfigurationen von
+Modell A (n=560) uebernahmen, obwohl Modell B mit n=1600 (fast 3x mehr
+Trainingsdaten) eine potenziell andere, weniger restriktive Regularisierung
+rechtfertigen wuerde. Fuehrte zur Entscheidung, vollstaendiges
+systematisches Tuning (Notebook 12) durchzufuehren, bevor eine
+belastbare Champion-Entscheidung getroffen wird.
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
