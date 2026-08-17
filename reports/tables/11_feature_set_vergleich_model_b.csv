@@ -1,0 +1,9 @@
+modell,nur_dn,nur_wandstaerke,original,residualisiert,bestes_feature_set
+HistGradientBoosting,0.5351,0.5329,0.549,0.5464,original
+LightGBM,0.5329,0.5341,0.5493,0.5469,original
+MLP,0.3957,0.3918,0.4097,0.3616,original
+RandomForest,0.5223,0.5205,0.5404,0.5371,original
+Ridge,0.5533,0.5479,0.5674,0.5674,original
+SVR,0.5064,0.5047,0.5261,0.5174,original
+XGBoost,0.5318,0.5295,0.5515,0.5456,original
+kNN,0.4202,0.4177,0.4461,0.4105,original
