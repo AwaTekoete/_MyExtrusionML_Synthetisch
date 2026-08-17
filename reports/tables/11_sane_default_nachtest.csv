@@ -1,0 +1,5 @@
+modell,struktur,feature_set,schneckendrehzahl_r2_mean,schneckendrehzahl_r2_gap,massetemperatur_r2_mean,massetemperatur_r2_gap,duesenspalt_r2_mean,duesenspalt_r2_gap,vakuumniveau_r2_mean,vakuumniveau_r2_gap,innenluftdruck_r2_mean,innenluftdruck_r2_gap,kuehlwassertemperatur_r2_mean,kuehlwassertemperatur_r2_gap,r2_durchschnitt,gap_durchschnitt,fit_zeit_sek
+RandomForest,multioutput,original,0.737,0.029,0.414,0.064,0.917,0.008,0.337,0.182,0.486,0.124,0.199,0.075,0.515,0.0803,0.5463
+RandomForest,einzeln,original,0.811,0.06,0.449,0.168,0.945,0.02,0.346,0.202,0.489,0.161,0.226,0.222,0.5443,0.1388,2.993
+MLP,multioutput,original,0.811,0.012,0.3,0.071,0.937,0.006,0.361,0.035,0.502,0.028,0.256,0.019,0.5278,0.0285,1.2079
+MLP,einzeln,original,0.816,0.026,0.372,0.108,0.941,0.013,0.343,0.058,0.489,0.054,0.222,0.076,0.5305,0.0558,4.2218
