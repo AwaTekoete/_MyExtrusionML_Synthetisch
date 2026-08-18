@@ -1,0 +1,9 @@
+modell,r2_val_mean,r2_train_mean,gap
+Ridge,0.5675,0.5737,0.0062
+kNN,0.4918,0.5391,0.0473
+RandomForest,0.5464,0.6537,0.1074
+MLP,0.5359,0.5607,0.0249
+SVR,0.5632,0.5768,0.0136
+HistGradientBoosting,0.5503,0.6436,0.0933
+XGBoost,0.5246,0.7352,0.2106
+LightGBM,0.5502,0.6478,0.0976
