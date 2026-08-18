@@ -1,0 +1,9 @@
+modell,r2_vorher,r2_nachher,r2_differenz,gap_vorher,gap_nachher,gap_differenz,tuning_lohnt_sich
+kNN,0.4461,0.4918,0.0457,0.186,0.0473,-0.1387,True
+SVR,0.5261,0.5632,0.0371,0.0396,0.0136,-0.026,True
+MLP,0.5276,0.5359,0.0083,0.0284,0.0249,-0.0035,False
+RandomForest,0.5443,0.5464,0.0021,0.139,0.1074,-0.0316,False
+HistGradientBoosting,0.549,0.5503,0.0013,0.0919,0.0933,0.0014,False
+LightGBM,0.5493,0.5502,0.0009,0.0835,0.0976,0.0141,False
+Ridge,0.5674,0.5675,0.0001,0.0063,0.0062,-0.0001,False
+XGBoost,0.5515,0.5246,-0.0269,0.093,0.2106,0.1176,False
