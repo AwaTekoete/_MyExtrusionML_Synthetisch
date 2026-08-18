@@ -1594,3 +1594,114 @@ R²-Vergleich, Overfitting-Diagnose, Aufwand-Nutzen, Y_B-Heatmap).
 
 Naechster Schritt: Notebook 12, systematisches Hyperparameter-Tuning
 (Nested CV, 5x5 Folds) fuer alle 8 Modelle, Feature-Set "original" fixiert.
+
+---
+
+## Notebook 11 (Nachtrag): Konsolidierte Vor-Tuning-Uebersicht
+
+Nach Abschluss des Notebooks wurde eine bis dahin fehlende Luecke
+geschlossen: keine einzige konsolidierte Ergebnistabelle existierte,
+nur fragmentierte Teiltabellen. Neue Datei
+reports/tables/11_sane_default_konsolidiert_vor_tuning.csv erstellt -
+enthaelt fuer alle 8 Modelle: R2, Gap, MAE, RMSE, Median-AE, Fit-/Predict-
+Zeit UND die tatsaechlich verwendeten Hyperparameter (vollstaendig, als
+sklearn get_params()-Dictionary) - Referenzstand fuer den spaeteren
+Vorher-Nachher-Vergleich mit Notebook 12. Ausdruecklich NICHT als
+"final" bezeichnet, da Notebook 12 diese Werte noch ueberarbeitet.
+Zusaetzlich Dateibenennungsfehler behoben (20_gesamtvergleich_mit_std.csv
+-> korrekt 11_gesamtvergleich_mit_std.csv, an der Quelle in Zelle 20
+korrigiert, kein nachtraeglicher Dateiflick).
+
+---
+
+## Notebook 12 – Systematisches Hyperparameter-Tuning Modell B
+
+### Hintergrund und Suchraeume
+
+Nach dem Hyperparameter-Herkunfts-Audit (Notebook 11 Abschluss) wurden
+fuer alle 8 Modelle begruendete Suchraeume definiert - detailliert je
+Modell dokumentiert (Ridge alpha, kNN n_neighbors, RandomForest
+max_depth/min_samples_leaf, MLP hidden_layer_sizes/alpha, SVR C/gamma,
+HistGB/XGBoost/LightGBM Iterationsanzahl/Tiefe). Pilot-Zeitschaetzung
+zeigte anfangs unplausibel hohe Werte fuer HistGradientBoosting (durch
+einen einmaligen Bibliotheks-Aufwaermeffekt verursacht, per Wiederholungs-
+messung verifiziert und korrigiert: 5.7s -> 0.25s bei Wiederholung).
+RandomForest-Zeitschaetzung dagegen als real bestaetigt (konstant ~0.86s).
+
+Vollstaendige Nested-CV-Schleife (5 aeussere x 5 innere Folds) in einem
+einzigen konsistenten Durchlauf implementiert (nach kritischer Nutzer-
+pruefung: urspruengliche Version war auf zwei fragmentierte Zellen
+verteilt, was zu Inkonsistenzrisiko fuehrte - konsolidiert in einer
+Zelle mit vollstaendigem Metrik-Set MAE/RMSE/R²/Median-AE/normierte
+Varianten, Fit-/Predict-Zeit, best_params je Fold. Zwischenspeicherung
+mit try/except abgesichert (Lehre aus fruehreren stillen Fehlschlaegen),
+Speicherort explizit im Output genannt (neuer Standard-Grundsatz).
+
+### Hat Tuning tatsaechlich geholfen? (kritische Ueberpruefung)
+
+Nur 2 von 8 Modellen profitierten NACHWEISBAR vom systematischen Tuning:
+- **kNN:** R² 0.446->0.492 (+0.046), Gap 0.186->0.047 (deutlich
+  reduziert) - bestaetigt den Audit-Verdacht (n_neighbors=5 war zu klein)
+- **SVR:** R² 0.526->0.563 (+0.037), Gap 0.040->0.014 (deutlich
+  reduziert) - bestaetigt den Audit-Verdacht (C=1.0 zu stark regularisiert)
+
+6 von 8 Modelle blieben im Rahmen der normalen Fold-Streuung nahezu
+unveraendert (Ridge, MLP, RandomForest, HistGB, LightGBM). **XGBoost
+verschlechterte sich deutlich** (R² 0.552->0.525, Gap 0.093->0.211 mehr
+als verdoppelt) - Hinweis auf Tuning-Instabilitaet bei begrenztem
+Suchraum, aehnlich der bei Modell A beobachteten Multilabel-Instabilitaet.
+
+### Finale Champion-Entscheidung: Ridge (robust bestaetigt)
+
+Vollstaendiger Vergleich Ridge vs. SVR (die zwei Spitzenkandidaten nach
+Tuning) zeigt: Ridge gewinnt in JEDER gemessenen Dimension entweder
+eigenstaendig oder liegt gleichauf - R² (0.5675 vs. 0.5632, Streuung
+ueberlappt), Gap (0.0062 vs. 0.0136, mehr als doppelt so klein),
+Fit-Zeit (1.34s vs. 11.00s, ~8x schneller), Predict-Zeit (~0s vs. 0.66s),
+Erklaerbarkeit (LinearExplainer exakt/schnell vs. KernelExplainer
+approximativ/langsam). Kein einziges Kriterium spricht fuer SVR.
+
+**Bestaetigt auch auf Einzelgroessen-Ebene:** Ridge schlaegt SVR bei
+ALLEN 6 Y_B-Zielgroessen einzeln (nicht nur im Durchschnitt) -
+Duesenspalt 0.950 vs. 0.949, Schneckendrehzahl 0.831 vs. 0.827,
+Innenluftdruck 0.517 vs. 0.512, Massetemperatur 0.475 vs. 0.470,
+Vakuumniveau 0.367 vs. 0.363, Kuehlwassertemperatur 0.266 vs. 0.258 -
+robustes, in sich konsistentes Bild ueber alle Ebenen.
+
+**Wichtige Einschraenkung, explizit dokumentiert:** Ridge ist ein rein
+lineares Modell - die Champion-Entscheidung gilt fuer die aktuelle
+Datenbasis, die ueberwiegend lineare Zusammenhaenge zeigt (bestaetigt
+durch EDA Notebook 09). Bei neuen, realen Daten mit moeglicherweise
+nichtlinearen Effekten sollte diese Entscheidung erneut ueberprueft
+werden.
+
+### Wichtige differenzierte Erkenntnis: ungleiche Vorhersagbarkeit je Zielgroesse
+
+Der Gesamtdurchschnitt (R²≈0.57) verdeckt eine grosse Bandbreite:
+Duesenspalt/Schneckendrehzahl sehr verlaesslich (R²>0.83), Kuehlwasser-
+temperatur/Vakuumniveau deutlich schwaecher (R²<0.37) - praktische
+Konsequenz: Modellvorschlaege sollten je Zielgroesse unterschiedlich
+stark vertraut werden, nicht als einheitliche Aussage behandelt werden
+(relevant fuer spaetere Streamlit-Anwendung: Konfidenz-Hinweis je
+Zielgroesse sinnvoll statt einer einzigen Gesamtaussage).
+
+### Methodische Lehren aus dieser Phase (mehrere Nutzer-Interventionen)
+
+1. Pilot-Zeitschaetzungen koennen durch Bibliotheks-Aufwaermeffekte
+   verzerrt sein - immer durch Wiederholungsmessung verifizieren
+2. Code-Korrekturen gehoeren an die Quelle, nicht als nachtraegliches
+   Dateiflicken (Beispiel: Dateibenennungsfehler in Notebook 11)
+3. Grafik-Visualisierungen sollten ausprobiert und kritisch bewertet
+   werden, nicht blind alle geplanten Varianten umsetzen - manche
+   (Slope-Chart bei nur 2 Zeitpunkten) bringen keinen Mehrwert
+   gegenueber einfacheren Darstellungen (gepaartes Balkendiagramm)
+4. Legenden sind oft robuster als Inline-Beschriftung bei vielen,
+   teils eng beieinanderliegenden Datenpunkten
+5. Gesamtdurchschnitte (ueber mehrere Zielgroessen gemittelt) muessen
+   durch Einzelgroessen-Aufschluesselung ergaenzt werden, um praktisch
+   relevante Unterschiede sichtbar zu machen - wiederkehrendes Muster
+   in dieser Studie (bereits bei Modell A und Notebook 11 beobachtet)
+
+Naechster Schritt: Notebook-12-Abschluss-Markdown, dann Uebergang zu
+Streamlit-Anwendung (Modell A + B gemeinsam) bzw. finaler Projekt-
+zusammenfassung.

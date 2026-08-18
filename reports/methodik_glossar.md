@@ -1345,5 +1345,71 @@ belastbare Champion-Entscheidung getroffen wird.
 
 ---
 
+## Bibliotheks-Aufwaermeffekte bei Zeitschaetzungen
+
+**Konzept:** Manche ML-Bibliotheken (z.B. HistGradientBoosting) fuehren
+beim allerersten Aufruf zusaetzliche interne Vorbereitungsschritte durch
+(Kompilierung, Caching), die den ersten Fit deutlich verlangsamen -
+wiederholte Aufrufe sind danach oft um ein Vielfaches schneller. Eine
+einzelne Pilot-Zeitmessung kann dadurch stark verzerrt sein.
+
+**Pruefmethode:** Vor einer Zeitschaetzung fuer eine groessere Schleife
+immer mehrere Wiederholungsmessungen (mind. 3) durchfuehren - sinkt die
+Zeit bei Wiederholung deutlich, war der erste Wert ein Aufwaermeffekt,
+nicht die reale Rechenlast.
+
+**Projektbezug:** Notebook 12, Modell B - HistGradientBoosting zeigte
+5.7s beim ersten Fit, 0.25s bei Wiederholung (Faktor 20+) - korrigierte
+die Gesamtzeitschaetzung von 213 auf 48 Minuten. RandomForest dagegen
+zeigte konstante Zeiten (~0.86s) - reale Rechenlast, kein Aufwaermeffekt,
+bestaetigt durch dieselbe Pruefmethode.
+
+---
+
+## Code-Korrekturen an der Quelle, nicht nachtraeglich flicken
+
+**Konzept:** Wird ein Fehler in einer bereits ausgefuehrten Code-Zelle
+entdeckt (z.B. falsche Dateibenennung, fehlende Messgroesse), sollte die
+Korrektur IMMER an der urspruenglichen Fehlerquelle vorgenommen werden
+(die betroffene Zelle wird korrigiert und erneut ausgefuehrt), nicht
+durch nachtraegliches manuelles Aendern von Dateien oder durch separate
+"Reparatur-Zellen", die den Fehler nur kaschieren. Nachtraegliches
+Flicken fuehrt zu einer Diskrepanz zwischen Code und tatsaechlichem
+Ergebnis, die bei spaeterer Nachvollziehbarkeit (Reproduzierbarkeit)
+zu Verwirrung fuehrt.
+
+**Projektbezug:** Notebook 11, Zelle 20 - Datei wurde faelschlich als
+"20_gesamtvergleich_mit_std.csv" statt "11_gesamtvergleich_mit_std.csv"
+gespeichert (Notebook-Nummer statt Zell-Nummer als Praefix verwendet).
+Korrektur erfolgte im Code der Zelle 20 selbst, mit erneuter Ausfuehrung -
+nicht durch manuelles Umbenennen der bereits erzeugten Datei.
+
+---
+
+## Gesamtdurchschnitte vs. Einzelgroessen-Aufschluesselung (wiederkehrendes Muster)
+
+**Konzept:** Bei Modellen mit mehreren gleichzeitigen Zielgroessen
+(Multi-Output) oder mehreren Bewertungskriterien kann ein aggregierter
+Durchschnittswert eine erhebliche Bandbreite zwischen den einzelnen
+Bestandteilen verdecken. Ein einzelner "guter" Gesamtwert kann aus einer
+Mischung aus sehr guten und sehr schwachen Einzelwerten entstehen - die
+praktische Nutzbarkeit unterscheidet sich dann stark je nach Teilaspekt.
+
+**Praktische Konsequenz:** IMMER zusaetzlich zur aggregierten Kennzahl
+eine Aufschluesselung nach den einzelnen Bestandteilen (Zielgroessen,
+Kriterien, Kategorien) bereitstellen und explizit kommunizieren, wo
+das Modell/Verfahren stark und wo es schwach ist - eine einzelne Zahl
+suggeriert oft eine Gleichmaessigkeit, die nicht besteht.
+
+**Projektbezug:** Wiederkehrendes Muster in diesem Projekt - Modell A
+(F1-Durchschnitt ueber 9 NIO-Kriterien verdeckte grosse Unterschiede
+zwischen haeufigen und seltenen Fehlertypen), Modell B Notebook 11
+(R²-Durchschnitt ueber 6 Y_B-Groessen verdeckte Duesenspalt R²=0.95 vs.
+Kuehlwassertemperatur R²=0.27), Notebook 12 (bestaetigt nach Tuning
+identisch fuer Ridge UND SVR - kein Zufallsmuster, sondern strukturelle
+Eigenschaft der zugrunde liegenden Daten).
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
