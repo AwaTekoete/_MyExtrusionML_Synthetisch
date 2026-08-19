@@ -1705,3 +1705,46 @@ Zielgroesse sinnvoll statt einer einzigen Gesamtaussage).
 Naechster Schritt: Notebook-12-Abschluss-Markdown, dann Uebergang zu
 Streamlit-Anwendung (Modell A + B gemeinsam) bzw. finaler Projekt-
 zusammenfassung.
+
+---
+
+## Nachtrag zu Notebook 07: Kritische Korrektur des Hyperparameters (waehrend Streamlit-Vorbereitung entdeckt)
+
+Bei der Vorbereitung der finalen Modell-Persistierung fuer die Streamlit-
+Anwendung (Notebook 13) wurde der in Notebook 07 fuer das SHAP-Modell
+verwendete Hyperparameter C=1.0 kritisch hinterfragt und durch direkte
+Code-Verifikation gegen die Rohdaten aus 06_tuning_results.csv geprueft
+(Counter-basierte Mehrheitsauszaehlung ueber alle 5 Fold-Werte, keine
+manuelle/gedaechtnisbasierte Herleitung mehr). Ergebnis: C=1.0 kam in
+keinem der 5 Folds als bestes Ergebnis vor - der tatsaechliche
+Mehrheitswert ist C=0.1 (3 von 5 Folds), penalty="l2" blieb korrekt
+(4 von 5 Folds).
+
+**Notebook 07 korrigiert und komplett neu durchlaufen (Training, SHAP-
+Berechnung, Summary-/Waterfall-Plot):**
+- Test-F1: 0.422 -> 0.415 (marginal, im Rahmen normaler Fold-Streuung)
+- **SHAP-Feature-Wichtigkeit deutlich veraendert:** vorher dominierten
+  mechanismus_Vakuum (0.418) und kalibrierdruck_mbar (0.408), jetzt
+  dominieren schneckendrehzahl (0.205) und duesenspalt (0.155) -
+  kalibrierdruck_mbar faellt auf Rang 3, mechanismus_Vakuum sogar auf
+  Rang 9 von 11.
+
+**Erklaerung:** staerkere Regularisierung (C=0.1) verteilt die
+Gewichtung bei korrelierten Merkmalen (kalibrierdruck_mbar und
+mechanismus_Vakuum haengen beide von dn_ziel ab) anders als schwaechere
+Regularisierung (C=1.0) - ein bekanntes Verhalten linearer Modelle mit
+L2-Regularisierung bei Multikollinearitaet.
+
+**Wichtige methodische Lehre:** SHAP-Einzelranking ist bei Vorhandensein
+korrelierter Merkmale nicht notwendigerweise robust gegenueber der
+gewaehlten Regularisierungsstaerke, auch wenn die Gesamt-Modellguete
+kaum betroffen ist. Die grobe inhaltliche Aussage (Prozessparameter mit
+Bezug zu Baugroesse/Mechanismus sind wichtig) bleibt in beiden Versionen
+bestehen, das exakte Einzelranking der Top-Features ist aber instabiler
+als zunaechst angenommen - analog zur bei Modell B beobachteten DN<->
+Wandstaerke-Multikollinearitaet.
+
+Naechster Schritt: Notebook 13 (finale Modell-Persistierung fuer
+Streamlit), jetzt mit beiden Modellen unter korrekt verifizierten
+Hyperparametern (Modell A: LogisticRegression C=0.1/l2, Modell B:
+Ridge alpha=1.0).

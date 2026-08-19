@@ -1411,5 +1411,50 @@ Eigenschaft der zugrunde liegenden Daten).
 
 ---
 
+## Hyperparameter-Mehrheitswerte immer per Code verifizieren, nie manuell auszaehlen
+
+**Konzept:** Bei der Bestimmung des "Mehrheitswerts" eines Hyperparameters
+ueber mehrere CV-Folds (z.B. fuer ein finales Modell) sollte die
+Auszaehlung IMMER per Code erfolgen (z.B. `collections.Counter`), nie
+manuell aus dem Gedaechtnis oder durch fluechtiges Ueberfliegen einer
+Liste. Bei mehreren Werten mit unterschiedlicher Haeufigkeit ist die
+Fehleranfaelligkeit hoch, besonders wenn zwei Parameter (z.B. C und
+penalty) gleichzeitig ausgezaehlt werden muessen.
+
+**Projektbezug:** Notebook 07, Modell A - der urspruenglich verwendete
+Hyperparameter C=1.0 fuer das SHAP-Modell stellte sich bei objektiver
+Code-Verifikation als falsch heraus (kam in keinem der 5 Folds als
+bestes Ergebnis vor, tatsaechlicher Mehrheitswert war C=0.1). Die
+Korrektur veraenderte die SHAP-Feature-Wichtigkeit substanziell,
+obwohl die Modellguete (F1) nur marginal betroffen war.
+
+---
+
+## SHAP-Ranking-Instabilitaet bei korrelierten Merkmalen und Regularisierungsstaerke
+
+**Konzept:** Bei linearen Modellen mit L2-Regularisierung (Ridge,
+LogisticRegression mit penalty="l2") kann die exakte Rangfolge der
+SHAP-Feature-Wichtigkeit empfindlich auf die Staerke der Regularisierung
+reagieren, WENN Merkmale untereinander korreliert sind. Staerkere
+Regularisierung verteilt die Gewichtung zwischen korrelierten Merkmalen
+anders als schwaechere Regularisierung - die Gesamt-Modellguete kann
+dabei nahezu unveraendert bleiben, waehrend sich das Einzelranking der
+Top-Features deutlich verschiebt.
+
+**Praktische Konsequenz:** Eine SHAP-Analyse sollte nicht als absolut
+robuste, hyperparameter-unabhaengige Wahrheit behandelt werden, wenn
+bekannte Multikollinearitaet zwischen Merkmalen vorliegt. Die grobe,
+thematische Aussage (welche Merkmalsgruppe ist wichtig) bleibt meist
+stabiler als das exakte Einzelranking.
+
+**Projektbezug:** Notebook 07, Modell A - nach Korrektur von C=1.0 auf
+C=0.1 verschoben sich kalibrierdruck_mbar/mechanismus_Vakuum (beide
+korreliert mit dn_ziel, siehe PCA-Befund Notebook 03) von Rang 1-2 auf
+Rang 3 bzw. 9 - waehrend schneckendrehzahl/duesenspalt neu an die Spitze
+ruecken. Analog zur Multikollinearitaets-Thematik bei Modell B
+(DN<->Wandstaerke, Notebook 09-12).
+
+---
+
 *(Ende des aktuellen Stands - wird bei jedem neuen methodischen Konzept
 im Projekt ergaenzt.)*
