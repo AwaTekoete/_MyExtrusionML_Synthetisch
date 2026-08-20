@@ -10,6 +10,10 @@ __pycache__/
 models/*.joblib
 models/*.pkl
 
+# Ausnahme: finale, kleine Modelle fuer Streamlit-App werden versioniert
+!models/modell_a_logreg_final.joblib
+!models/modell_b_ridge_final.joblib
+
 # OS/Editor
 .DS_Store
 .vscode/settings.json
