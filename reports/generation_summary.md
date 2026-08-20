@@ -1748,3 +1748,81 @@ Naechster Schritt: Notebook 13 (finale Modell-Persistierung fuer
 Streamlit), jetzt mit beiden Modellen unter korrekt verifizierten
 Hyperparametern (Modell A: LogisticRegression C=0.1/l2, Modell B:
 Ridge alpha=1.0).
+
+---
+
+## Notebook 13 – Finale Modell-Persistierung + Streamlit-Prototyp
+
+Beide finalen Champion-Modelle auf dem vollstaendigen Trainingsset
+trainiert und via joblib gespeichert: Modell B (Ridge, alpha=1.0,
+Test-R²=0.5912) und Modell A (LogisticRegression, C=0.1/l2,
+Test-F1=0.4151, konsistent mit dem korrigierten Wert aus Notebook 07).
+Preprocessing-Pipeline (Modell B) bzw. Scaler (Modell A) gemeinsam mit
+dem Modell gespeichert fuer konsistente Inferenz. X_train_skaliert
+(Modell A) zusaetzlich mitgespeichert - notwendig als SHAP-
+LinearExplainer-Referenzdaten (siehe unten).
+
+**Technisches Hindernis geloest:** Lambda-Funktionen in
+baue_preprocessing_pipeline_b (src/preprocessing.py) sind nicht
+picklebar - durch benannte SpaltenAuswahl-Klasse (BaseEstimator/
+TransformerMixin) ersetzt, ermoeglicht joblib-Speicherung.
+
+### Streamlit-App (Prototyp): app/main.py + src/app_inference.py
+
+Zwei Tabs: (1) Auftragseingabe & Empfehlung (Modell B, 7 Eingabefelder,
+6 Ausgabe-KPI-Karten mit dreistufiger Konfidenzanzeige hoch/mittel/
+niedrig je Zielgroesse, basierend auf den R²-Werten aus Notebook 12);
+(2) Qualitaetspruefung (Modell A, vorbefuellt aus Tab-1-Empfehlung via
+Session State, frei ueberschreibbar, IO/NIO-Vorhersage + SHAP-Waterfall-
+Erklaerung).
+
+Store44-Farbkonzept fuer die App neu festgelegt (Nutzer-Entscheidung):
+Gold ausschliesslich fuer den Empfehlungswert reserviert (keine
+Doppelbedeutung), Gruen=hohe Konfidenz/IO, Blau=mittlere Konfidenz/NIO,
+gedimmter Text=niedrige Konfidenz - bewusst KEINE vierte/fuenfte Farbe
+eingefuehrt.
+
+**SHAP-Darstellung, iterativ verbessert:** kombinierte Beschriftung zeigt
+sowohl den echten Prozesswert (z.B. "2.32mm") als auch den standardisierten
+Z-Score in Klammern ("Z=1.63") - didaktischer Kompromiss zwischen
+Anwenderfreundlichkeit und technischer Transparenz, auf Nutzerwunsch
+entwickelt statt zwei separater Plots.
+
+### Mehrere technische Probleme geloest waehrend der App-Entwicklung
+
+1. numba/llvmlite DLL-Blockierung durch Windows Smart App Control
+   (identisches Muster wie fruehere pandas-Blockierung) - Neuinstallation
+   behoben
+2. Lambda-Picklability (siehe oben)
+3. .gitignore blockierte Modell-Dateien - gezielte Ausnahme fuer die
+   zwei kleinen finalen Modelle ergaenzt (allgemeine models/*.joblib-
+   Regel fuer groessere experimentelle Modelle bleibt bestehen)
+4. SHAP-LinearExplainer wurde zunaechst faelschlich mit dem einzelnen
+   Vorhersagefall statt echten Trainingsdaten als Referenz initialisiert -
+   fuehrte zu kollabierten, kaum unterscheidbaren SHAP-Werten (alle
+   Balken erschienen gleich gross) - behoben durch Mitspeichern von
+   X_train_skaliert in der Modell-A-joblib-Datei
+5. Batch-Dimension-Fehler bei manueller shap.Explanation-Konstruktion
+   ("invalid index to scalar variable") - durch gezielte DEBUG-Print-
+   Diagnose (shape-Ausgabe) statt Raten geloest ([0]-Indexierung ergaenzt)
+6. Doppelte Werteanzeige im SHAP-Label - data/feature_names sauber
+   getrennt (data=Original-Wert, Z-Score nur im Label-Text)
+
+### Wichtige projektuebergreifende Lehre bestaetigt
+
+Die Kombination aus systematischer Fehlerdiagnose (Diagnose-Prints statt
+Raten, Schritt-fuer-Schritt-Zellueberpruefung) und kontinuierlicher
+kritischer Nutzerpruefung (Fold-Streuung, Hyperparameter-Herkunft,
+SHAP-Referenzdaten, Werte-Dopplung) hat mehrfach echte, sonst uebersehene
+Fehler aufgedeckt - bestaetigt erneut den Wert des im Projekt etablierten
+Arbeitsprinzips "keine Vorab-Annahmen, alles pruefen und verifizieren".
+
+Status: Streamlit-Prototyp funktionsfaehig und vom Nutzer als
+ausreichend fuer den Demonstrationszweck bestaetigt. Kosmetische
+Verfeinerungen (z.B. prominenterer Hinweis auf synthetische Daten)
+bewusst zurueckgestellt zugunsten der Fokussierung auf weitere
+ML-Inhalte.
+
+Naechster Schritt: noch offen, vom Nutzer zu bestimmen (z.B. weitere
+Modellverbesserungen, zusaetzliche Analysen, oder Projektabschluss-
+Dokumentation).
