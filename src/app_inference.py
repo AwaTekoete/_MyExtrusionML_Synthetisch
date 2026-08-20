@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 
 # --- Konfidenz-Einordnung je Y_B-Groesse, aus Notebook 12 (Ridge, getunt) ---
-# Grenzen bewusst grob gewaehlt: "hoch" ab R2>0.6, sonst "niedrig" -
-# spiegelt die in Notebook 12 gemessene Bandbreite (0.266 bis 0.950) wider.
+# Drei Stufen: hoch (R2>=0.6), mittel (0.4<=R2<0.6), niedrig (R2<0.4) -
+# spiegelt die in Notebook 12 gemessene Bandbreite (0.266 bis 0.950) differenzierter wider.
 KONFIDENZ_R2_JE_Y_B = {
     "duesenspalt": 0.950,
     "schneckendrehzahl": 0.831,
@@ -22,7 +22,27 @@ KONFIDENZ_R2_JE_Y_B = {
     "kuehlwassertemperatur": 0.266,
 }
 KONFIDENZ_SCHWELLE_HOCH = 0.6
+KONFIDENZ_SCHWELLE_MITTEL = 0.4
 
+
+def konfidenz_stufe_bestimmen(r2_wert):
+    if pd.isna(r2_wert):
+        return "unbekannt"
+    if r2_wert >= KONFIDENZ_SCHWELLE_HOCH:
+        return "hoch"
+    elif r2_wert >= KONFIDENZ_SCHWELLE_MITTEL:
+        return "mittel"
+    return "niedrig"
+
+# --- NEU: Einheiten je Y_B-Groesse (aus Datenwoerterbuch, Notebook 09) ---
+EINHEITEN_JE_Y_B = {
+    "schneckendrehzahl": "U/min",
+    "massetemperatur": "°C",
+    "duesenspalt": "mm",
+    "vakuumniveau": "mbar",
+    "innenluftdruck": "mbar",
+    "kuehlwassertemperatur": "°C",
+}
 
 def lade_modell_b(pfad="../models/modell_b_ridge_final.joblib"):
     """Laedt Modell B (Ridge) inkl. Preprocessing-Pipeline."""
@@ -60,11 +80,12 @@ def vorhersage_modell_b(modell_dict, auftrag_dict):
 
     ergebnis = []
     for i, y_name in enumerate(y_spalten):
-        r2 = KONFIDENZ_R2_JE_Y_B.get(y_name, np.nan)
-        stufe = "hoch" if r2 >= KONFIDENZ_SCHWELLE_HOCH else "niedrig"
+        r2 = round(KONFIDENZ_R2_JE_Y_B.get(y_name, np.nan), 2)
+        stufe = konfidenz_stufe_bestimmen(r2)
         ergebnis.append({
             "merkmal": y_name,
             "empfehlung": round(vorhersage[i], 2),
+            "einheit": EINHEITEN_JE_Y_B.get(y_name, ""),
             "r2_konfidenz": r2,
             "konfidenz_stufe": stufe,
         })
